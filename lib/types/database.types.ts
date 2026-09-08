@@ -1,6 +1,11 @@
 // Hand-written from supabase/migrations/*.sql (no CLI/MCP access to this
 // project to auto-generate — see FOUNDER_TODO.md). Keep in sync with the
 // migrations by hand until that's possible.
+//
+// `Relationships: []` on every table is required structurally by
+// @supabase/postgrest-js's GenericTable type (2.x) even though we don't
+// use embedded/joined selects yet — without it the query builder's
+// generics silently collapse to `never` everywhere.
 
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
@@ -27,6 +32,7 @@ export type Database = {
           updated_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["profiles"]["Insert"]>;
+        Relationships: [];
       };
       movies_cache: {
         Row: {
@@ -60,6 +66,7 @@ export type Database = {
           cached_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["movies_cache"]["Insert"]>;
+        Relationships: [];
       };
       ratings: {
         Row: {
@@ -79,6 +86,7 @@ export type Database = {
           updated_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["ratings"]["Insert"]>;
+        Relationships: [];
       };
       watch_history: {
         Row: {
@@ -94,6 +102,7 @@ export type Database = {
           watched_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["watch_history"]["Insert"]>;
+        Relationships: [];
       };
       friendships: {
         Row: {
@@ -113,6 +122,7 @@ export type Database = {
           updated_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["friendships"]["Insert"]>;
+        Relationships: [];
       };
       groups: {
         Row: {
@@ -130,6 +140,7 @@ export type Database = {
           created_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["groups"]["Insert"]>;
+        Relationships: [];
       };
       group_members: {
         Row: {
@@ -145,6 +156,7 @@ export type Database = {
           joined_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["group_members"]["Insert"]>;
+        Relationships: [];
       };
       pathways: {
         Row: {
@@ -166,6 +178,7 @@ export type Database = {
           created_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["pathways"]["Insert"]>;
+        Relationships: [];
       };
       pathway_movies: {
         Row: {
@@ -181,6 +194,7 @@ export type Database = {
           group_match_score?: number | null;
         };
         Update: Partial<Database["public"]["Tables"]["pathway_movies"]["Insert"]>;
+        Relationships: [];
       };
       pathway_progress: {
         Row: {
@@ -200,6 +214,7 @@ export type Database = {
           completed_at?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["pathway_progress"]["Insert"]>;
+        Relationships: [];
       };
     };
     Views: Record<string, never>;
@@ -211,6 +226,10 @@ export type Database = {
       group_role: {
         Args: { p_group_id: string; p_user_id: string };
         Returns: string | null;
+      };
+      movie_community_rating: {
+        Args: { p_movie_id: number };
+        Returns: { avg_rating: number | null; rating_count: number }[];
       };
     };
     Enums: Record<string, never>;
