@@ -18,6 +18,21 @@
 - **Task 8 (docs):** README + FOUNDER_TODO written. Vercel linking deferred on purpose — linking now would ship a deployment that 500s on every request (no valid Supabase URL to construct a client with), and there's no MCP tool to set Vercel env vars, so it wouldn't be fixable without founder action anyway. Do it once Supabase is real and TMDB key is in hand, in one pass.
 - **TMDB key:** not yet provided — needed for Discover/Search/Movie-detail sub-projects, not for anything in this plan.
 
+## Update — overnight session, 2026-09-08 → 09
+
+All blockers above resolved (real Supabase project, TMDB key, GitHub push, Vercel deploy — see FOUNDER_TODO.md history and commits `dfc04ee`/`1d4238b`). Founder then asked for full autonomy overnight to build as much of the remaining MVP as possible. Every sub-project this plan deferred (see "Next sub-projects" below) got built, verified live with two real test accounts, and shipped:
+
+- TMDB integration + search/discover/movie detail/rating — `8ed3f9c`
+- Taste onboarding — `03a5437`
+- Personal recommendation engine + real Home page — `fd74202`
+- Friends — `bbabbea`
+- Groups (roles, members) — `8299740` (root-caused a real Postgres RLS+trigger+RETURNING bug along the way, documented in that commit)
+- Group recommendation engine + filters — `a3de857`
+- Pathways (Main + Themed, generation, progress) — `37bd56c`
+- Profile page — see latest commit on `main`
+
+Spec §21's full "MVP Scope — Build Now" list is done. See `README.md` "Known gaps" for the small, deliberate simplifications (streaming-platform filter, watched-count filter granularity) and spec §22 for what's intentionally still not started.
+
 ## Global Constraints
 
 *(carried verbatim from `Moffy_MVP_Product_Technical_Specification_v0.1.docx`; every task below implicitly includes these)*
