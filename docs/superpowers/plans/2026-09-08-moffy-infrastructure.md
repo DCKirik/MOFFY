@@ -8,6 +8,16 @@
 
 **Tech Stack:** Next.js 15 (App Router), TypeScript, Tailwind CSS, @supabase/supabase-js, @supabase/ssr, Supabase Postgres/Auth, Vercel.
 
+## Progress (2026-09-08 evening session)
+
+- **Task 1 (scaffold):** done — `ffc8d98`.
+- **Task 2 (brand tokens + UI primitives):** done — `dcfd145`.
+- **Task 3 (Supabase clients + proxy):** code done — `13c862f`. **Provisioning blocked:** founder's Supabase account is at its 2-project free-tier cap; the only other project (`stem & buds`) is paused and `restore_project` hits the same cap, so it can't even be read to back up before deletion, and this MCP server exposes no `delete_project` tool. Handed to the founder — see `FOUNDER_TODO.md` §1. `.env.local`/`.env.example` currently hold placeholder values so the app builds and runs (auth calls fail gracefully → redirect to `/login`, verified locally).
+- **Task 4 (DB schema) + Task 5 (RLS):** SQL written and committed (`607dbea`) but **not applied** — same Supabase blocker. Apply both migration files via `apply_migration` the moment a project exists.
+- **Task 6 (auth) + Task 7 (nav shell):** code done, builds clean, route guard verified (curl + browser, desktop + mobile) — `7351cb7`. Full logged-in click-through and the "profile row created on signup" check are deferred to when Supabase is real.
+- **Task 8 (docs):** README + FOUNDER_TODO written. Vercel linking deferred on purpose — linking now would ship a deployment that 500s on every request (no valid Supabase URL to construct a client with), and there's no MCP tool to set Vercel env vars, so it wouldn't be fixable without founder action anyway. Do it once Supabase is real and TMDB key is in hand, in one pass.
+- **TMDB key:** not yet provided — needed for Discover/Search/Movie-detail sub-projects, not for anything in this plan.
+
 ## Global Constraints
 
 *(carried verbatim from `Moffy_MVP_Product_Technical_Specification_v0.1.docx`; every task below implicitly includes these)*
