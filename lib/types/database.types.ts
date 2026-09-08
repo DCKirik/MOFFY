@@ -1,11 +1,218 @@
-// Placeholder until the Supabase project exists and schema is applied.
-// Replaced by `generate_typescript_types` output once Task 4/5 land for real
-// (see docs/superpowers/plans/2026-09-08-moffy-infrastructure.md, Task 5 Step 4).
+// Hand-written from supabase/migrations/*.sql (no CLI/MCP access to this
+// project to auto-generate — see FOUNDER_TODO.md). Keep in sync with the
+// migrations by hand until that's possible.
+
+export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
+
 export type Database = {
   public: {
-    Tables: Record<string, never>;
+    Tables: {
+      profiles: {
+        Row: {
+          id: string;
+          username: string;
+          display_name: string | null;
+          avatar_url: string | null;
+          onboarding_completed: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id: string;
+          username: string;
+          display_name?: string | null;
+          avatar_url?: string | null;
+          onboarding_completed?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["profiles"]["Insert"]>;
+      };
+      movies_cache: {
+        Row: {
+          tmdb_id: number;
+          title: string;
+          poster_path: string | null;
+          backdrop_path: string | null;
+          release_year: number | null;
+          runtime: number | null;
+          genres: Json;
+          director: string | null;
+          cast_members: Json;
+          overview: string | null;
+          external_rating: number | null;
+          popularity: number | null;
+          cached_at: string;
+        };
+        Insert: {
+          tmdb_id: number;
+          title: string;
+          poster_path?: string | null;
+          backdrop_path?: string | null;
+          release_year?: number | null;
+          runtime?: number | null;
+          genres?: Json;
+          director?: string | null;
+          cast_members?: Json;
+          overview?: string | null;
+          external_rating?: number | null;
+          popularity?: number | null;
+          cached_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["movies_cache"]["Insert"]>;
+      };
+      ratings: {
+        Row: {
+          id: string;
+          user_id: string;
+          movie_id: number;
+          rating: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          movie_id: number;
+          rating: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["ratings"]["Insert"]>;
+      };
+      watch_history: {
+        Row: {
+          id: string;
+          user_id: string;
+          movie_id: number;
+          watched_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          movie_id: number;
+          watched_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["watch_history"]["Insert"]>;
+      };
+      friendships: {
+        Row: {
+          id: string;
+          requester_id: string;
+          addressee_id: string;
+          status: "pending" | "accepted" | "rejected";
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          requester_id: string;
+          addressee_id: string;
+          status?: "pending" | "accepted" | "rejected";
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["friendships"]["Insert"]>;
+      };
+      groups: {
+        Row: {
+          id: string;
+          name: string;
+          avatar_url: string | null;
+          owner_id: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          avatar_url?: string | null;
+          owner_id: string;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["groups"]["Insert"]>;
+      };
+      group_members: {
+        Row: {
+          group_id: string;
+          user_id: string;
+          role: "owner" | "admin" | "member";
+          joined_at: string;
+        };
+        Insert: {
+          group_id: string;
+          user_id: string;
+          role?: "owner" | "admin" | "member";
+          joined_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["group_members"]["Insert"]>;
+      };
+      pathways: {
+        Row: {
+          id: string;
+          group_id: string;
+          name: string;
+          type: "main" | "themed";
+          filters_json: Json;
+          created_by: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          group_id: string;
+          name: string;
+          type?: "main" | "themed";
+          filters_json?: Json;
+          created_by: string;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["pathways"]["Insert"]>;
+      };
+      pathway_movies: {
+        Row: {
+          pathway_id: string;
+          movie_id: number;
+          position: number;
+          group_match_score: number | null;
+        };
+        Insert: {
+          pathway_id: string;
+          movie_id: number;
+          position: number;
+          group_match_score?: number | null;
+        };
+        Update: Partial<Database["public"]["Tables"]["pathway_movies"]["Insert"]>;
+      };
+      pathway_progress: {
+        Row: {
+          pathway_id: string;
+          movie_id: number;
+          user_id: string;
+          status: "not_started" | "watched";
+          rating: number | null;
+          completed_at: string | null;
+        };
+        Insert: {
+          pathway_id: string;
+          movie_id: number;
+          user_id: string;
+          status?: "not_started" | "watched";
+          rating?: number | null;
+          completed_at?: string | null;
+        };
+        Update: Partial<Database["public"]["Tables"]["pathway_progress"]["Insert"]>;
+      };
+    };
     Views: Record<string, never>;
-    Functions: Record<string, never>;
+    Functions: {
+      is_group_member: {
+        Args: { p_group_id: string; p_user_id: string };
+        Returns: boolean;
+      };
+      group_role: {
+        Args: { p_group_id: string; p_user_id: string };
+        Returns: string | null;
+      };
+    };
     Enums: Record<string, never>;
     CompositeTypes: Record<string, never>;
   };
