@@ -4,7 +4,11 @@ import { getMovieDetail } from "@/lib/tmdb/client";
 import { cacheMovie } from "@/lib/tmdb/cache";
 import { tmdbImage } from "@/lib/tmdb/image";
 import { createClient } from "@/lib/supabase/server";
+import { computeTasteProfile } from "@/lib/recommendations/taste-profile";
+import { computeMoffyMatch } from "@/lib/recommendations/moffy-match";
+import { detailToMatchable } from "@/lib/recommendations/adapters";
 import { Card } from "@/components/ui/Card";
+import { MatchBadge } from "@/components/ui/MatchBadge";
 import { RatingControl } from "./RatingControl";
 
 function formatRuntime(minutes: number | null): string | null {
@@ -31,7 +35,7 @@ export default async function MovieDetailPage({
     data: { user },
   } = await supabase.auth.getUser();
 
-  const [, communityRatingRes, myRatingRes, watchedRes] = await Promise.all([
+  const [, communityRatingRes, myRatingRes, watchedRes, profile] = await Promise.all([
     cacheMovie(detail),
     supabase.rpc("movie_community_rating", { p_movie_id: id }).maybeSingle(),
     user
@@ -45,11 +49,13 @@ export default async function MovieDetailPage({
           .eq("movie_id", id)
           .maybeSingle()
       : Promise.resolve({ data: null }),
+    user ? computeTasteProfile(supabase, user.id) : Promise.resolve(null),
   ]);
 
   const community = communityRatingRes.data;
   const myRating = myRatingRes.data?.rating ?? 0;
   const watched = Boolean(watchedRes.data);
+  const matchPercent = profile ? computeMoffyMatch(profile, detailToMatchable(detail)) : null;
 
   const backdrop = tmdbImage(detail.backdrop_path, "original");
   const poster = tmdbImage(detail.poster_path, "w500");
@@ -84,7 +90,10 @@ export default async function MovieDetailPage({
         </div>
 
         <div className="flex flex-1 flex-col gap-3">
-          <h1 className="text-3xl font-bold text-brand-ink">{detail.title}</h1>
+          <div className="flex flex-wrap items-center gap-3">
+            <h1 className="text-3xl font-bold text-brand-ink">{detail.title}</h1>
+            {matchPercent != null && <MatchBadge percent={matchPercent} />}
+          </div>
           <p className="text-sm text-brand-ink/60">
             {[
               detail.release_date?.slice(0, 4),
