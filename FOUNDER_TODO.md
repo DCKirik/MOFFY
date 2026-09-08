@@ -1,29 +1,30 @@
 # Moffy — senin yapman gereken şeyler
 
-Bu dosya sadece sana (teknik olmayan kurucuya) yazıldı. Kodla ilgili hiçbir şey bilmene gerek yok. Aşağıdaki maddeler dışında hiçbir şey yapman gerekmiyor — geri kalan her şeyi ben hallediyorum.
+Bu dosya sadece sana (teknik olmayan kurucuya) yazıldı. Aşağıdaki maddeler dışında hiçbir şey yapman gerekmiyor — geri kalan her şeyi ben hallediyorum.
 
 ## Şu an ne durumda?
 
-Bu gece MOFFY'nin altyapısını kurdum: proje iskeleti, marka renkleri/tasarım sistemi, veritabanı şeması, giriş/kayıt ekranları, üst ve alt menü, tüm sayfa iskeletleri. Hepsi GitHub'a kaydedildi. İki yerde tıkandım — ikisi de sadece senin yapabileceğin şeyler (hesap açma / silme / ödeme benim erişimimde yok, bilerek kısıtlı).
+Bu gece MOFFY'nin altyapısını kurdum: proje iskeleti, marka renkleri/tasarım sistemi, veritabanı şeması, giriş/kayıt ekranları, üst ve alt menü, tüm sayfa iskeletleri. Veritabanı artık gerçek ve canlı — az önce senin yeni Supabase hesabında kurdum, gerçek bir kayıt testiyle doğruladım. İki şey kaldı, ikisi de sadece senin yapabileceğin şeyler.
 
-## 1) Supabase (veritabanı) — ACİL, bunsuz devam edemiyorum
-
-Ücretsiz hesabında zaten 2 proje var, limit bu. MOFFY için üçüncü projeyi açamıyorum. Elindeki "stem & buds" adlı proje aylardır kapalı (inactive) duruyor.
-
-Şunu denedim: onu "restore" edip içindeki veriyi sana yedeklemeyi denedim, ama restore isteği de aynı limite takıldı — API üzerinden içine giremiyorum. Proje **silme** yetkisi de elimdeki araçta hiç yok (bilerek öyle, güvenlik için).
-
-Senin yapman gerekenler (birini seç):
-
-- **Veri önemli değilse (önerim):** [supabase.com](https://supabase.com) → giriş yap → **stem & buds** projesi → Project Settings → General → sayfanın en altında **Delete Project**. Bana "sildim" yaz, MOFFY'nin veritabanını 2 dakikada kurarım.
-- **Veri lazımsa:** Aynı panelden o projenin üstünde bir **Restore** butonu olabilir, dener misin? Sana da aynı limit hatasını verirse (muhtemelen verir), veriyi kurtarmanın tek yolu Supabase'de geçici olarak ücretli plana geçmek (bu ödeme adımını ben atamam, kartını gerektirir). Geçince haber ver, ben devam ederim.
-
-## 2) TMDB API anahtarı — ACİL, film arama/veri bunsuz çalışmıyor
+## 1) TMDB API anahtarı — ACİL, film arama/veri bunsuz çalışmıyor
 
 MOFFY'nin film bilgilerini (afiş, konu, oyuncular, puanlar) çektiği yer TMDB. Ücretsiz, kredi kartı istemiyor.
 
 1. [themoviedb.org](https://www.themoviedb.org) → ücretsiz hesap aç.
 2. Hesap ayarları → **API** → bir anahtar iste (kişisel/geliştirici kullanımı yeterli, 2 dakika sürer).
-3. Sana verdiği anahtarı buraya, sohbete yapıştır — ben güvenli şekilde koda ekleyeceğim, GitHub'a asla çıplak yazılmayacak.
+3. Sana verdiği anahtarı buraya, sohbete yapıştır.
+
+## 2) GitHub'a yükleme izni — ACİL, işler bilgisayarında kalıyor, GitHub'a çıkmıyor
+
+Bu bilgisayarda GitHub'a `akirik28` hesabıyla giriş yapılmış ama `DCKirik/MOFFY` deposu ona ait değil, yazma izni yok. Muhtemelen `DCKirik` senin asıl kişisel hesabın.
+
+Terminalde şunu çalıştır (veya buradaki mesajdaki Run düğmesine bas), tarayıcı açılınca **DCKirik** hesabınla giriş yapıp "Authorize" de:
+
+```bash
+gh auth login
+```
+
+Bitince "yaptım" yaz.
 
 ## 3) Anthropic API anahtarı — ACİL DEĞİL, şimdilik atlanabilir
 
@@ -33,4 +34,4 @@ Zamanı gelince: [console.anthropic.com](https://console.anthropic.com) → hesa
 
 ## Bundan sonra ne olacak?
 
-1 ve 2 tamamlanınca haber ver — veritabanını gerçek verilerle kurar, giriş/kayıt ekranlarını gerçekten çalışır hale getirir, Vercel'e bağlar ve sana canlı bir link veririm. Ondan sonra sırayla: film arama, kişisel öneriler, arkadaşlar, gruplar, pathway'ler — dokümandaki her özelliği tek tek, her biri çalışır ve test edilir halde ekleyeceğim.
+1 ve 2 tamamlanınca: Vercel'e bağlar, sana canlı bir link veririm, işleri GitHub'a yüklerim. Ondan sonra sırayla: film arama, kişisel öneriler, arkadaşlar, gruplar, pathway'ler — dokümandaki her özelliği tek tek, her biri çalışır ve test edilir halde ekleyeceğim.
