@@ -68,7 +68,7 @@ README.md
 **Interfaces:**
 - Produces: a buildable Next.js App Router project at repo root that every later task adds files into.
 
-- [ ] **Step 1: Scaffold**
+- [x] **Step 1: Scaffold**
 
 ```bash
 rm README.md
@@ -77,7 +77,7 @@ npx --yes create-next-app@latest . --typescript --tailwind --eslint --app --no-s
 
 If the installed `create-next-app` version rejects a flag or the non-empty directory (`.git` present), re-run with the equivalent current flags — the goal is: TS + Tailwind + ESLint + App Router, npm, root-level `app/`, no `src/`.
 
-- [ ] **Step 2: Verify**
+- [x] **Step 2: Verify**
 
 ```bash
 npx tsc --noEmit
@@ -87,12 +87,9 @@ npm run build
 
 Expected: all three exit 0 on the generated starter page.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
-```bash
-git add -A
-git commit -m "chore: scaffold Next.js + TypeScript + Tailwind"
-```
+Landed as `ffc8d98` (Tailwind v4 — no `tailwind.config.ts`, tokens live in `app/globals.css` via `@theme`; Task 2 updated accordingly).
 
 ---
 
