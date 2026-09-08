@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { Avatar } from "@/components/ui/Avatar";
@@ -67,14 +68,19 @@ export default async function GroupDetailPage({
 
   return (
     <div className="flex flex-col gap-8">
-      <div className="flex items-center gap-3">
-        <Avatar url={group.avatar_url} name={group.name} size={56} />
-        <div>
-          <h1 className="text-2xl font-bold text-brand-ink">{group.name}</h1>
-          <p className="text-sm text-brand-ink/50">
-            {members.length} member{members.length === 1 ? "" : "s"}
-          </p>
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <Avatar url={group.avatar_url} name={group.name} size={56} />
+          <div>
+            <h1 className="text-2xl font-bold text-brand-ink">{group.name}</h1>
+            <p className="text-sm text-brand-ink/50">
+              {members.length} member{members.length === 1 ? "" : "s"}
+            </p>
+          </div>
         </div>
+        <Link href={`/groups/${id}/recommendations`}>
+          <Button variant="secondary">Recommendations</Button>
+        </Link>
       </div>
 
       <section>
