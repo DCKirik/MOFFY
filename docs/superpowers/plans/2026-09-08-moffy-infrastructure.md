@@ -369,7 +369,7 @@ export async function createClient() {
 }
 ```
 
-- [ ] **Step 6: `middleware.ts`**
+- [ ] **Step 6: `proxy.ts`** (Next.js 16 renamed the `middleware.ts` convention to `proxy.ts` / `export function proxy` — same API, new name; file below written under that name)
 
 ```ts
 import { createServerClient } from "@supabase/ssr";
