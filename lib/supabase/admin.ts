@@ -6,9 +6,11 @@ import type { Database } from "@/lib/types/database.types";
 // (regular users only ever get SELECT on movies_cache, see
 // supabase/migrations/20260908000002_rls_policies.sql).
 export function createAdminClient() {
-  return createSupabaseClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { auth: { persistSession: false } },
-  );
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!serviceRoleKey) {
+    throw new Error("SUPABASE_SERVICE_ROLE_KEY is not set");
+  }
+  return createSupabaseClient<Database>(process.env.NEXT_PUBLIC_SUPABASE_URL!, serviceRoleKey, {
+    auth: { persistSession: false },
+  });
 }
