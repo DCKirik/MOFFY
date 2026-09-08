@@ -78,9 +78,14 @@ export default async function GroupDetailPage({
             </p>
           </div>
         </div>
-        <Link href={`/groups/${id}/recommendations`}>
-          <Button variant="secondary">Recommendations</Button>
-        </Link>
+        <div className="flex gap-2">
+          <Link href={`/groups/${id}/pathways`}>
+            <Button variant="ghost">Pathways</Button>
+          </Link>
+          <Link href={`/groups/${id}/recommendations`}>
+            <Button variant="secondary">Recommendations</Button>
+          </Link>
+        </div>
       </div>
 
       <section>

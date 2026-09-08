@@ -2,9 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getPopularMovies } from "@/lib/tmdb/client";
 import { computeTasteProfile } from "@/lib/recommendations/taste-profile";
-import { computeMoffyMatch } from "@/lib/recommendations/moffy-match";
-import { summaryToMatchable } from "@/lib/recommendations/adapters";
-import { computeGroupScore } from "@/lib/recommendations/group-match";
+import { rankCandidatesForGroup } from "@/lib/recommendations/rank-for-group";
 import { TMDB_GENRES } from "@/lib/tmdb/genres";
 import { MovieCard } from "@/components/movie/MovieCard";
 import { Card } from "@/components/ui/Card";
@@ -76,21 +74,15 @@ export default async function GroupRecommendationsPage({
     excludedByWatch = new Set((watchedRows ?? []).map((w) => w.movie_id));
   }
 
-  const scored = candidates
-    .filter((c) => !excludedByWatch.has(c.id))
-    .filter((c) => !c.genre_ids.some((g) => excludeGenreIds.has(g)))
-    .filter((c) => c.vote_average >= minRating)
-    .map((movie) => {
-      const matchable = summaryToMatchable(movie);
-      const personalMatches = tasteProfiles.map((p) => computeMoffyMatch(p, matchable));
-      return {
-        movie,
-        groupScore: computeGroupScore(personalMatches, extreme),
-        lowest: Math.min(...personalMatches),
-        lowestMember: memberIds[personalMatches.indexOf(Math.min(...personalMatches))],
-      };
-    })
-    .sort((a, b) => b.groupScore - a.groupScore);
+  const scored = rankCandidatesForGroup(candidates, tasteProfiles, {
+    excludeGenreIds,
+    minRating,
+    extreme,
+    excludeMovieIds: excludedByWatch,
+  }).map(({ movie, groupScore, personalMatches }) => {
+    const lowest = Math.min(...personalMatches);
+    return { movie, groupScore, lowest, lowestMember: memberIds[personalMatches.indexOf(lowest)] };
+  });
 
   return (
     <div className="flex flex-col gap-8">
