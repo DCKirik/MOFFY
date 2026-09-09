@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/Button";
 import { StarRating } from "@/components/ui/StarRating";
 import { MovieCard } from "@/components/movie/MovieCard";
 import { signOut } from "@/app/(auth)/actions";
+import { LanguageSwitcher } from "./LanguageSwitcher";
+import { t } from "@/lib/i18n/dictionary";
 
 export default async function ProfilePage() {
   const supabase = await createClient();
@@ -18,6 +20,7 @@ export default async function ProfilePage() {
 
   const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).maybeSingle();
   if (!profile) redirect("/login");
+  const lang = profile.ui_language;
 
   const { data: ratings } = await supabase
     .from("ratings")
@@ -67,29 +70,34 @@ export default async function ProfilePage() {
         </div>
         <form action={signOut}>
           <Button type="submit" variant="ghost">
-            Log out
+            {t(lang, "profile_log_out")}
           </Button>
         </form>
+      </div>
+
+      <div>
+        <p className="mb-2 text-sm font-semibold text-brand-ink/70">{t(lang, "profile_app_language")}</p>
+        <LanguageSwitcher current={lang} />
       </div>
 
       <div className="flex gap-4">
         <Card className="flex-1 text-center">
           <p className="text-2xl font-bold text-brand-ink">{ratings?.length ?? 0}</p>
-          <p className="text-xs uppercase tracking-wide text-brand-ink/50">Rated</p>
+          <p className="text-xs uppercase tracking-wide text-brand-ink/50">{t(lang, "profile_rated")}</p>
         </Card>
         <Card className="flex-1 text-center">
           <p className="text-2xl font-bold text-brand-ink">{watchHistory?.length ?? 0}</p>
-          <p className="text-xs uppercase tracking-wide text-brand-ink/50">Watched</p>
+          <p className="text-xs uppercase tracking-wide text-brand-ink/50">{t(lang, "profile_watched")}</p>
         </Card>
         <Card className="flex-1 text-center">
           <p className="text-2xl font-bold text-brand-ink">{savedMovies?.length ?? 0}</p>
-          <p className="text-xs uppercase tracking-wide text-brand-ink/50">Saved</p>
+          <p className="text-xs uppercase tracking-wide text-brand-ink/50">{t(lang, "profile_saved")}</p>
         </Card>
       </div>
 
       {topGenres.length > 0 && (
         <section>
-          <h2 className="mb-3 text-sm font-semibold text-brand-ink/70">Your Taste</h2>
+          <h2 className="mb-3 text-sm font-semibold text-brand-ink/70">{t(lang, "profile_your_taste")}</h2>
           <div className="flex flex-wrap gap-2">
             {topGenres.map((g) => (
               <span
@@ -105,7 +113,7 @@ export default async function ProfilePage() {
 
       {recentRatings.length > 0 && (
         <section>
-          <h2 className="mb-3 text-sm font-semibold text-brand-ink/70">Recently Rated</h2>
+          <h2 className="mb-3 text-sm font-semibold text-brand-ink/70">{t(lang, "profile_recently_rated")}</h2>
           <div className="flex flex-wrap gap-4">
             {recentRatings.map((r) => {
               const m = movieById.get(r.movie_id);
@@ -122,14 +130,12 @@ export default async function ProfilePage() {
       )}
 
       {recentRatings.length === 0 && (
-        <p className="text-sm text-brand-ink/50">
-          You haven&apos;t rated any movies yet — search or discover to get started.
-        </p>
+        <p className="text-sm text-brand-ink/50">{t(lang, "profile_no_ratings")}</p>
       )}
 
       {recentSaved.length > 0 && (
         <section>
-          <h2 className="mb-3 text-sm font-semibold text-brand-ink/70">Saved</h2>
+          <h2 className="mb-3 text-sm font-semibold text-brand-ink/70">{t(lang, "profile_saved")}</h2>
           <div className="flex flex-wrap gap-4">
             {recentSaved.map((s) => {
               const m = movieById.get(s.movie_id);

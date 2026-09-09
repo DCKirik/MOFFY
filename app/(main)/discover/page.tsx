@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getMoviePoolPage } from "@/lib/tmdb/cache";
-import { TMDB_GENRES } from "@/lib/tmdb/genres";
+import { TMDB_GENRES, genreName } from "@/lib/tmdb/genres";
 import { BROWSE_LANGUAGES } from "@/lib/tmdb/languages";
 import { InfiniteMovieGrid } from "@/components/movie/InfiniteMovieGrid";
 import { loadMoreDiscoverMovies } from "./actions";
+import { getUiLanguage } from "@/lib/i18n/get-language";
+import { t } from "@/lib/i18n/dictionary";
 
 // No auth/cookie read here originally, so Next treated this as eligible
 // for build-time static generation — one transient TMDB hiccup during a
@@ -33,11 +35,15 @@ export default async function DiscoverPage({
 }: {
   searchParams: Promise<{ genre?: string; lang?: string }>;
 }) {
-  const { genre, lang } = await searchParams;
+  const { genre, lang: movieLang } = await searchParams;
   const genreId = genre ? Number(genre) : undefined;
-  const language = lang || undefined;
+  const language = movieLang || undefined;
 
   const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const lang = await getUiLanguage(supabase, user?.id);
   const movies = await getMoviePoolPage(supabase, 1, 40, genreId, language);
   const initialMovies = movies.map((m) => ({
     id: m.id,
@@ -50,33 +56,35 @@ export default async function DiscoverPage({
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="font-display text-2xl text-brand-ink">Discover</h1>
+        <h1 className="font-display text-2xl text-brand-ink">{t(lang, "discover_title")}</h1>
         <p className="text-brand-ink/60">
-          {language
-            ? "Browse by language — best-rated first."
-            : "Browse the full Moffy catalog."}
+          {language ? t(lang, "discover_by_language") : t(lang, "discover_subtitle")}
         </p>
       </div>
 
       <div>
-        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-brand-ink/40">Genre</p>
+        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-brand-ink/40">
+          {t(lang, "discover_genre")}
+        </p>
         <div className="flex flex-wrap gap-2">
           <Link href={chipHref(undefined, language)} className={chipClass(!genreId)}>
-            All
+            {t(lang, "discover_all")}
           </Link>
           {TMDB_GENRES.map((g) => (
             <Link key={g.id} href={chipHref(g.id, language)} className={chipClass(genreId === g.id)}>
-              {g.name}
+              {genreName(lang, g.id, g.name)}
             </Link>
           ))}
         </div>
       </div>
 
       <div>
-        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-brand-ink/40">Language</p>
+        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-brand-ink/40">
+          {t(lang, "discover_language")}
+        </p>
         <div className="flex flex-wrap gap-2">
           <Link href={chipHref(genreId, undefined)} className={chipClass(!language)}>
-            All
+            {t(lang, "discover_all")}
           </Link>
           {BROWSE_LANGUAGES.map((l) => (
             <Link key={l.code} href={chipHref(genreId, l.code)} className={chipClass(language === l.code)}>

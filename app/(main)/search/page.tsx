@@ -1,11 +1,13 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { searchMoviePool } from "@/lib/tmdb/cache";
-import { TMDB_GENRES } from "@/lib/tmdb/genres";
+import { TMDB_GENRES, genreName } from "@/lib/tmdb/genres";
 import { Card } from "@/components/ui/Card";
 import { InfiniteMovieGrid } from "@/components/movie/InfiniteMovieGrid";
 import { SearchBar } from "@/components/movie/SearchBar";
 import { loadMoreSearchMovies } from "./actions";
+import { getUiLanguage } from "@/lib/i18n/get-language";
+import { t } from "@/lib/i18n/dictionary";
 
 export default async function SearchPage({
   searchParams,
@@ -17,6 +19,10 @@ export default async function SearchPage({
   const genreId = genre ? Number(genre) : undefined;
 
   const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const lang = await getUiLanguage(supabase, user?.id);
   const results = query ? await searchMoviePool(supabase, query, 1, 40, genreId) : [];
   const initialMovies = results.map((m) => ({
     id: m.id,
@@ -28,7 +34,7 @@ export default async function SearchPage({
 
   return (
     <div className="flex flex-col gap-6">
-      <SearchBar initialQuery={query} />
+      <SearchBar initialQuery={query} lang={lang} />
 
       {query && (
         <div className="flex flex-wrap gap-2">
@@ -40,7 +46,7 @@ export default async function SearchPage({
                 : "border-white/15 bg-brand-surface-2 text-brand-ink/80 hover:border-brand-orange/40"
             }`}
           >
-            All
+            {t(lang, "discover_all")}
           </Link>
           {TMDB_GENRES.map((g) => (
             <Link
@@ -52,7 +58,7 @@ export default async function SearchPage({
                   : "border-white/15 bg-brand-surface-2 text-brand-ink/80 hover:border-brand-orange/40"
               }`}
             >
-              {g.name}
+              {genreName(lang, g.id, g.name)}
             </Link>
           ))}
         </div>
@@ -60,13 +66,15 @@ export default async function SearchPage({
 
       {!query && (
         <Card>
-          <p className="text-brand-ink/60">Search for a title, studio, or keyword to get started.</p>
+          <p className="text-brand-ink/60">{t(lang, "search_start_prompt")}</p>
         </Card>
       )}
 
       {query && results.length === 0 && (
         <Card>
-          <p className="text-brand-ink/60">No results for &ldquo;{query}&rdquo;.</p>
+          <p className="text-brand-ink/60">
+            {t(lang, "search_no_results")} &ldquo;{query}&rdquo;.
+          </p>
         </Card>
       )}
 

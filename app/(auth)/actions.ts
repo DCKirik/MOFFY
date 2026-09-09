@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import { getPreAuthLanguage } from "@/lib/i18n/get-language";
 
 export async function signUp(formData: FormData) {
   const supabase = await createClient();
@@ -10,6 +11,17 @@ export async function signUp(formData: FormData) {
     password: String(formData.get("password")),
   });
   if (error) redirect(`/signup?error=${encodeURIComponent(error.message)}`);
+
+  // The profiles row itself is created by the handle_new_user trigger
+  // (default ui_language 'en') — apply whatever they picked on the
+  // Welcome screen's language picker, carried here via a cookie since
+  // there's no profile to read a preference from before this point.
+  if (data.user) {
+    const lang = await getPreAuthLanguage();
+    if (lang !== "en") {
+      await supabase.from("profiles").update({ ui_language: lang }).eq("id", data.user.id);
+    }
+  }
 
   // Email confirmation is on (Supabase default): signUp succeeds but issues
   // no session until the user clicks the link in their inbox. Redirecting

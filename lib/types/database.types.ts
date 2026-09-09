@@ -22,6 +22,7 @@ export type Database = {
           preferred_genres: number[];
           content_origin: "domestic" | "foreign" | "both";
           watch_language: "turkish" | "subtitled" | "both";
+          ui_language: "en" | "tr" | "fr";
           created_at: string;
           updated_at: string;
         };
@@ -34,6 +35,7 @@ export type Database = {
           preferred_genres?: number[];
           content_origin?: "domestic" | "foreign" | "both";
           watch_language?: "turkish" | "subtitled" | "both";
+          ui_language?: "en" | "tr" | "fr";
           created_at?: string;
           updated_at?: string;
         };

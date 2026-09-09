@@ -1,19 +1,20 @@
 import Image from "next/image";
 import Link from "next/link";
 import { signOut } from "@/app/(auth)/actions";
+import { t, type UiLanguage } from "@/lib/i18n/dictionary";
 
 const LINKS = [
-  { href: "/", label: "Home" },
-  { href: "/reels", label: "Reels" },
-  { href: "/discover", label: "Discover" },
-  { href: "/groups", label: "Groups" },
-  { href: "/pathways", label: "Pathways" },
-  { href: "/friends", label: "Friends" },
-  { href: "/search", label: "Search" },
-  { href: "/profile", label: "Profile" },
-];
+  { href: "/", key: "nav_home" },
+  { href: "/reels", key: "nav_reels" },
+  { href: "/discover", key: "nav_discover" },
+  { href: "/groups", key: "nav_groups" },
+  { href: "/pathways", key: "nav_pathways" },
+  { href: "/friends", key: "nav_friends" },
+  { href: "/search", key: "nav_search" },
+  { href: "/profile", key: "nav_profile" },
+] as const;
 
-export function TopNav() {
+export function TopNav({ lang }: { lang: UiLanguage }) {
   return (
     <header className="sticky top-0 z-10 hidden border-b border-white/10 bg-brand-bg/90 backdrop-blur md:block">
       <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-3">
@@ -27,13 +28,13 @@ export function TopNav() {
               href={link.href}
               className="text-sm font-semibold text-brand-ink/70 transition-colors hover:text-brand-orange"
             >
-              {link.label}
+              {t(lang, link.key)}
             </Link>
           ))}
         </nav>
         <form action={signOut}>
           <button className="cursor-pointer text-sm font-semibold text-brand-ink/50 transition-colors hover:text-brand-orange">
-            Log out
+            {t(lang, "profile_log_out")}
           </button>
         </form>
       </div>

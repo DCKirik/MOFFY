@@ -3,6 +3,7 @@ import { Card } from "@/components/ui/Card";
 import Image from "next/image";
 import Link from "next/link";
 import { ReactNode } from "react";
+import { t, type UiLanguage } from "@/lib/i18n/dictionary";
 
 export function AuthForm({
   action,
@@ -11,6 +12,7 @@ export function AuthForm({
   error,
   notice,
   footer,
+  lang,
 }: {
   action: (formData: FormData) => void;
   title: string;
@@ -18,6 +20,7 @@ export function AuthForm({
   error?: string;
   notice?: string;
   footer: ReactNode;
+  lang: UiLanguage;
 }) {
   return (
     <div className="flex min-h-screen items-center justify-center px-4">
@@ -36,7 +39,7 @@ export function AuthForm({
         )}
         <form action={action} className="flex flex-col gap-4">
           <label className="flex flex-col gap-1 text-sm font-medium text-brand-ink/80">
-            Email
+            {t(lang, "auth_email")}
             <input
               name="email"
               type="email"
@@ -46,7 +49,7 @@ export function AuthForm({
             />
           </label>
           <label className="flex flex-col gap-1 text-sm font-medium text-brand-ink/80">
-            Password
+            {t(lang, "auth_password")}
             <input
               name="password"
               type="password"

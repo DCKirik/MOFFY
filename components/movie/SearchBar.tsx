@@ -6,8 +6,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { tmdbImage } from "@/lib/tmdb/image";
 import { autocompleteMovies, type SearchSuggestion } from "@/app/(main)/search/actions";
+import { t, type UiLanguage } from "@/lib/i18n/dictionary";
 
-export function SearchBar({ initialQuery }: { initialQuery: string }) {
+export function SearchBar({ initialQuery, lang }: { initialQuery: string; lang: UiLanguage }) {
   const [value, setValue] = useState(initialQuery);
   const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([]);
   const [open, setOpen] = useState(false);
@@ -60,7 +61,7 @@ export function SearchBar({ initialQuery }: { initialQuery: string }) {
           value={value}
           onChange={(e) => handleChange(e.target.value)}
           onFocus={() => suggestions.length > 0 && setOpen(true)}
-          placeholder="Search for a movie, studio, or keyword..."
+          placeholder={t(lang, "search_placeholder")}
           autoComplete="off"
           className="w-full rounded-xl2 border border-white/15 bg-brand-surface px-4 py-2.5 text-brand-ink outline-none focus:border-brand-orange"
         />
