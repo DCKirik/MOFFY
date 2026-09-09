@@ -98,8 +98,10 @@ async function collectIds() {
   await discoverBucket("Global · popularity", { sort_by: "popularity.desc" }, 500);
   await discoverBucket("Global · top rated", { sort_by: "vote_average.desc", "vote_count.gte": 100 }, 500);
   await discoverBucket("Global · vote_count", { sort_by: "vote_count.desc" }, 500);
-  await discoverBucket("Global · revenue", { sort_by: "revenue.desc" }, 300);
-  await discoverBucket("Global · vote_average low-bar", { sort_by: "vote_average.desc", "vote_count.gte": 20 }, 300);
+  await discoverBucket("Global · revenue", { sort_by: "revenue.desc" }, 500);
+  await discoverBucket("Global · vote_average low-bar", { sort_by: "vote_average.desc", "vote_count.gte": 20 }, 500);
+  await discoverBucket("Global · release date desc", { sort_by: "primary_release_date.desc", "vote_count.gte": 1 }, 500);
+  await discoverBucket("Global · release date asc", { sort_by: "primary_release_date.asc", "vote_count.gte": 1 }, 300);
 
   const diverseGenres = [
     ["Action", 28],
@@ -123,11 +125,11 @@ async function collectIds() {
   ];
   for (const [name, id] of diverseGenres) {
     if (idOrder.length >= TARGET_TOTAL) break;
-    await discoverBucket(`Global · ${name} · popularity`, { with_genres: id, sort_by: "popularity.desc" }, 300);
+    await discoverBucket(`Global · ${name} · popularity`, { with_genres: id, sort_by: "popularity.desc" }, 500);
     if (idOrder.length >= TARGET_TOTAL) break;
-    await discoverBucket(`Global · ${name} · vote_count`, { with_genres: id, sort_by: "vote_count.desc" }, 300);
+    await discoverBucket(`Global · ${name} · vote_count`, { with_genres: id, sort_by: "vote_count.desc" }, 500);
     if (idOrder.length >= TARGET_TOTAL) break;
-    await discoverBucket(`Global · ${name} · revenue`, { with_genres: id, sort_by: "revenue.desc" }, 150);
+    await discoverBucket(`Global · ${name} · revenue`, { with_genres: id, sort_by: "revenue.desc" }, 300);
   }
 
   // Decade passes surface long-tail catalog titles that pure popularity
@@ -157,7 +159,7 @@ async function collectIds() {
         "primary_release_date.lte": `${to}-12-31`,
         sort_by: "vote_count.desc",
       },
-      250,
+      500,
     );
     if (idOrder.length >= TARGET_TOTAL) break;
     await discoverBucket(
@@ -167,7 +169,7 @@ async function collectIds() {
         "primary_release_date.lte": `${to}-12-31`,
         sort_by: "popularity.desc",
       },
-      150,
+      300,
     );
   }
 
@@ -184,9 +186,9 @@ async function collectIds() {
   ];
   for (const lang of languages) {
     if (idOrder.length >= TARGET_TOTAL) break;
-    await discoverBucket(`Global · lang=${lang} · popularity`, { with_original_language: lang, sort_by: "popularity.desc" }, 150);
+    await discoverBucket(`Global · lang=${lang} · popularity`, { with_original_language: lang, sort_by: "popularity.desc" }, 300);
     if (idOrder.length >= TARGET_TOTAL) break;
-    await discoverBucket(`Global · lang=${lang} · vote_count`, { with_original_language: lang, sort_by: "vote_count.desc" }, 100);
+    await discoverBucket(`Global · lang=${lang} · vote_count`, { with_original_language: lang, sort_by: "vote_count.desc" }, 200);
   }
 
   console.log(`=== Collected ${idOrder.length} unique ids (${trSet.size} Turkish) ===`);

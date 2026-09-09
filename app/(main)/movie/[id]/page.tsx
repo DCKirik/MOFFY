@@ -236,7 +236,11 @@ export default async function MovieDetailPage({
             ))}
           </div>
         ) : (
-          <p className="text-sm text-brand-ink/50">Not currently available to stream in Türkiye.</p>
+          <p className="text-sm text-brand-ink/50">
+            No streaming info for Türkiye yet — this comes from a third-party database that
+            doesn&apos;t cover every title, so it&apos;s not a guarantee this isn&apos;t streaming
+            somewhere.
+          </p>
         )}
       </Card>
 
