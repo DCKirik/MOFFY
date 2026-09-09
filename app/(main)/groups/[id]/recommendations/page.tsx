@@ -33,20 +33,27 @@ export default async function GroupRecommendationsPage({
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const { data: group } = await supabase.from("groups").select("*").eq("id", groupId).maybeSingle();
+  const { data: group, error: groupError } = await supabase
+    .from("groups")
+    .select("*")
+    .eq("id", groupId)
+    .maybeSingle();
+  if (groupError) console.error("group query failed:", groupError.message);
   if (!group) notFound();
 
-  const { data: memberRows } = await supabase
+  const { data: memberRows, error: memberRowsError } = await supabase
     .from("group_members")
     .select("user_id")
     .eq("group_id", groupId);
+  if (memberRowsError) console.error("group_members query failed:", memberRowsError.message);
   const memberIds = (memberRows ?? []).map((m) => m.user_id);
   if (!memberIds.includes(user.id)) notFound();
 
-  const { data: memberProfiles } = await supabase
+  const { data: memberProfiles, error: memberProfilesError } = await supabase
     .from("profiles")
     .select("id, username, display_name")
     .in("id", memberIds);
+  if (memberProfilesError) console.error("group member profiles query failed:", memberProfilesError.message);
   const memberNames = new Map(
     (memberProfiles ?? []).map((p) => [p.id, p.display_name ?? p.username]),
   );
@@ -63,7 +70,7 @@ export default async function GroupRecommendationsPage({
 
   let excludedByWatch = new Set<number>();
   if (nobodyWatched) {
-    const { data: watchedRows } = await supabase
+    const { data: watchedRows, error: watchedRowsError } = await supabase
       .from("watch_history")
       .select("movie_id")
       .in("user_id", memberIds)
@@ -71,6 +78,7 @@ export default async function GroupRecommendationsPage({
         "movie_id",
         candidates.map((c) => c.id),
       );
+    if (watchedRowsError) console.error("watch_history query failed:", watchedRowsError.message);
     excludedByWatch = new Set((watchedRows ?? []).map((w) => w.movie_id));
   }
 

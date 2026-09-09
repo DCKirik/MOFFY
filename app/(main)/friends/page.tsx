@@ -19,10 +19,11 @@ export default async function FriendsPage({
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const { data: friendshipRows } = await supabase
+  const { data: friendshipRows, error: friendshipsError } = await supabase
     .from("friendships")
     .select("*")
     .or(`requester_id.eq.${user.id},addressee_id.eq.${user.id}`);
+  if (friendshipsError) console.error("friendships query failed:", friendshipsError.message);
 
   const rows = friendshipRows ?? [];
   const otherUserIds = new Set<string>();
@@ -38,23 +39,25 @@ export default async function FriendsPage({
   }[] = [];
 
   if (query) {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("profiles")
       .select("id, username, display_name, avatar_url")
       .ilike("username", `%${query}%`)
       .neq("id", user.id)
       .limit(20);
+    if (error) console.error("friends search query failed:", error.message);
     searchResults = data ?? [];
     for (const r of searchResults) otherUserIds.add(r.id);
   }
 
-  const { data: profilesData } =
+  const { data: profilesData, error: profilesError } =
     otherUserIds.size > 0
       ? await supabase
           .from("profiles")
           .select("id, username, display_name, avatar_url")
           .in("id", Array.from(otherUserIds))
-      : { data: [] };
+      : { data: [], error: null };
+  if (profilesError) console.error("friends profiles query failed:", profilesError.message);
 
   const profileById = new Map((profilesData ?? []).map((p) => [p.id, p]));
 
