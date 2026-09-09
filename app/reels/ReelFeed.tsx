@@ -64,6 +64,16 @@ export function ReelFeed({ initialQueue }: { initialQueue: ScoredReel[] }) {
   const slideRefs = useRef<(HTMLDivElement | null)[]>([]);
   const loadingMoreRef = useRef(false);
   const seenIdsRef = useRef<Set<number>>(new Set(initialQueue.map((r) => r.id)));
+  // ReelSlide's unplayable timer is created once, when the slide becomes
+  // active, and holds onto whatever onUnplayable closure existed at that
+  // moment — it never picks up a newer one on later ReelFeed re-renders.
+  // Reading activeIndex directly from that stale closure means the
+  // freshness check below could compare against a long-outdated value, so
+  // handleUnplayable reads this ref instead to always see the current one.
+  const activeIndexRef = useRef(activeIndex);
+  useEffect(() => {
+    activeIndexRef.current = activeIndex;
+  }, [activeIndex]);
 
   const fetchMore = useCallback(() => {
     if (loadingMoreRef.current) return;
@@ -134,7 +144,7 @@ export function ReelFeed({ initialQueue }: { initialQueue: ScoredReel[] }) {
   // strand the user on a dead slide — skip forward automatically, but
   // only for genuinely unplayable content, not on any user action.
   function handleUnplayable(index: number) {
-    if (index !== activeIndex) return;
+    if (index !== activeIndexRef.current) return;
     const next = slideRefs.current[index + 1];
     next?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
@@ -293,12 +303,17 @@ function ReelSlide({
               effect in 2023. Scaling the player past its crop box pushes
               those edge-anchored bars outside the visible frame instead. */}
           <div id={playerElId} className="absolute inset-0 scale-125" />
-          {/* Swallows every click/tap on the video itself so the user can
-              never reach YouTube's own UI (pause overlay, end-screen
-              suggestions, channel branding) — playback is only ever
-              driven by our own buttons below, never direct interaction
-              with the embed. */}
-          <div className="absolute inset-0 z-10" />
+          {/* Intercepts every tap on the video so the user can never reach
+              YouTube's own UI (pause overlay, end-screen suggestions,
+              channel branding). Still forwards the tap into a playVideo()
+              call through our own player reference — harmless if already
+              playing, but the one way to recover a video autoplay failed
+              to start, since a real tap on the raw iframe would otherwise
+              be swallowed with no way to retry. */}
+          <div
+            className="absolute inset-0 z-10 cursor-pointer"
+            onClick={() => playerRef.current?.playVideo()}
+          />
         </div>
       )}
 
