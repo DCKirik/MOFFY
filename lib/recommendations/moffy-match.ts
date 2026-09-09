@@ -24,6 +24,13 @@ const POPULARITY_SCALE = Math.log10(1000);
 // foreign film, just tip close calls toward Turkish titles (and the
 // reverse for "foreign"). "both" (the default) applies no adjustment.
 const ORIGIN_BOOST = 0.06;
+// TMDB has no reliable per-title "has a Turkish dub" signal, so a
+// "subtitled" preference can't be scored directly — someone who's fine
+// reading subtitles is fine with any foreign film. A "turkish" (dubbed)
+// preference is the one case we CAN act on honestly: a Turkish-original
+// film guarantees native-language audio with zero dub-availability
+// uncertainty, so it earns an extra small nudge on top of ORIGIN_BOOST.
+const WATCH_LANGUAGE_BOOST = 0.04;
 
 function averageOrZero(values: number[]): number {
   return values.length ? values.reduce((a, b) => a + b, 0) / values.length : 0;
@@ -59,6 +66,7 @@ export function computeMoffyMatch(profile: TasteProfile, movie: MatchableMovie):
   const isTurkish = movie.originalLanguage === "tr";
   if (profile.contentOrigin === "domestic" && isTurkish) match01 += ORIGIN_BOOST;
   if (profile.contentOrigin === "foreign" && isTurkish) match01 -= ORIGIN_BOOST;
+  if (profile.watchLanguage === "turkish" && isTurkish) match01 += WATCH_LANGUAGE_BOOST;
 
   return Math.round(Math.min(Math.max(match01, 0), 1) * 100);
 }

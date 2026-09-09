@@ -8,6 +8,7 @@ export interface TasteProfile {
   ratedMovieIds: Set<number>;
   swipedMovieIds: Set<number>;
   contentOrigin: "domestic" | "foreign" | "both";
+  watchLanguage: "turkish" | "subtitled" | "both";
 }
 
 const EMPTY_PROFILE: TasteProfile = {
@@ -17,6 +18,7 @@ const EMPTY_PROFILE: TasteProfile = {
   ratedMovieIds: new Set(),
   swipedMovieIds: new Set(),
   contentOrigin: "both",
+  watchLanguage: "both",
 };
 
 // Onboarding lets a user explicitly pick genres they like, in addition to
@@ -71,10 +73,15 @@ export async function computeTasteProfile(
   const [{ data: ratings }, { data: swipes }, { data: profile }] = await Promise.all([
     supabase.from("ratings").select("movie_id, rating").eq("user_id", userId),
     supabase.from("reel_swipes").select("movie_id, liked").eq("user_id", userId),
-    supabase.from("profiles").select("preferred_genres, content_origin").eq("id", userId).maybeSingle(),
+    supabase
+      .from("profiles")
+      .select("preferred_genres, content_origin, watch_language")
+      .eq("id", userId)
+      .maybeSingle(),
   ]);
 
   const contentOrigin = profile?.content_origin ?? "both";
+  const watchLanguage = profile?.watch_language ?? "both";
   const preferredGenres = profile?.preferred_genres ?? [];
 
   const ratedMovieIds = new Set((ratings ?? []).map((r) => r.movie_id));
@@ -83,7 +90,7 @@ export async function computeTasteProfile(
 
   if (allMovieIds.size === 0) {
     const genreScores = new Map(preferredGenres.map((id) => [id, EXPLICIT_GENRE_BONUS]));
-    return { ...EMPTY_PROFILE, genreScores, contentOrigin };
+    return { ...EMPTY_PROFILE, genreScores, contentOrigin, watchLanguage };
   }
 
   const { data: movies } = await supabase
@@ -121,5 +128,13 @@ export async function computeTasteProfile(
   const directorScores = resolveScores(directorSums);
   const actorScores = resolveScores(actorSums);
 
-  return { genreScores, directorScores, actorScores, ratedMovieIds, swipedMovieIds, contentOrigin };
+  return {
+    genreScores,
+    directorScores,
+    actorScores,
+    ratedMovieIds,
+    swipedMovieIds,
+    contentOrigin,
+    watchLanguage,
+  };
 }
