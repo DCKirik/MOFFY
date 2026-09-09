@@ -28,9 +28,15 @@ export default async function ProfilePage() {
     .from("watch_history")
     .select("movie_id")
     .eq("user_id", user.id);
+  const { data: savedMovies } = await supabase
+    .from("saved_movies")
+    .select("movie_id")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false });
 
   const recentRatings = (ratings ?? []).slice(0, 12);
-  const movieIds = recentRatings.map((r) => r.movie_id);
+  const recentSaved = (savedMovies ?? []).slice(0, 12);
+  const movieIds = Array.from(new Set([...recentRatings.map((r) => r.movie_id), ...recentSaved.map((s) => s.movie_id)]));
   const { data: movies } =
     movieIds.length > 0
       ? await supabase.from("movies_cache").select("tmdb_id, title, poster_path").in("tmdb_id", movieIds)
@@ -75,6 +81,10 @@ export default async function ProfilePage() {
           <p className="text-2xl font-bold text-brand-ink">{watchHistory?.length ?? 0}</p>
           <p className="text-xs uppercase tracking-wide text-brand-ink/50">Watched</p>
         </Card>
+        <Card className="flex-1 text-center">
+          <p className="text-2xl font-bold text-brand-ink">{savedMovies?.length ?? 0}</p>
+          <p className="text-xs uppercase tracking-wide text-brand-ink/50">Saved</p>
+        </Card>
       </div>
 
       {topGenres.length > 0 && (
@@ -115,6 +125,19 @@ export default async function ProfilePage() {
         <p className="text-sm text-brand-ink/50">
           You haven&apos;t rated any movies yet — search or discover to get started.
         </p>
+      )}
+
+      {recentSaved.length > 0 && (
+        <section>
+          <h2 className="mb-3 text-sm font-semibold text-brand-ink/70">Saved</h2>
+          <div className="flex flex-wrap gap-4">
+            {recentSaved.map((s) => {
+              const m = movieById.get(s.movie_id);
+              if (!m) return null;
+              return <MovieCard key={s.movie_id} id={s.movie_id} title={m.title} posterPath={m.poster_path} />;
+            })}
+          </div>
+        </section>
       )}
     </div>
   );
