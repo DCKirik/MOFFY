@@ -53,6 +53,10 @@ export function InfiniteMovieGrid({
                 setPage(nextPage);
               }
             })
+            .catch((err) => {
+              console.error("Failed to load more movies", err);
+              setHasMore(false);
+            })
             .finally(() => {
               loadingRef.current = false;
             });
