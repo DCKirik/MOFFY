@@ -64,6 +64,8 @@ export type Database = {
           search_blob: string;
           trailer_key: string | null;
           trailer_videos: Json;
+          trailer_key_tr: string | null;
+          trailer_key_fr: string | null;
           cached_at: string;
         };
         Insert: {
@@ -87,6 +89,8 @@ export type Database = {
           search_blob?: string;
           trailer_key?: string | null;
           trailer_videos?: Json;
+          trailer_key_tr?: string | null;
+          trailer_key_fr?: string | null;
           cached_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["movies_cache"]["Insert"]>;

@@ -2,8 +2,8 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { Database, Json } from "@/lib/types/database.types";
-import type { TmdbMovieDetail, TmdbMovieSummary, TmdbVideo } from "./types";
-import { pickTrailerKey } from "./client";
+import type { TmdbMovieDetail, TmdbMovieSummary } from "./types";
+import { pickTrailerKey, pickOfficialTrailerForLanguage } from "./client";
 
 type MoviesCacheRow = {
   tmdb_id: number;
@@ -91,6 +91,8 @@ export async function cacheMovie(detail: TmdbMovieDetail): Promise<void> {
       trailer_videos: (detail.videos?.results ?? []).filter(
         (v) => v.site === "YouTube" && (v.type === "Trailer" || v.type === "Teaser"),
       ) as unknown as Json,
+      trailer_key_tr: pickOfficialTrailerForLanguage(detail.videos?.results ?? [], "tr"),
+      trailer_key_fr: pickOfficialTrailerForLanguage(detail.videos?.results ?? [], "fr"),
       cached_at: new Date().toISOString(),
     });
 
@@ -163,7 +165,8 @@ export interface ReelCandidate {
   posterPath: string | null;
   backdropPath: string | null;
   trailerKey: string;
-  trailerVideos: TmdbVideo[];
+  trailerKeyTr: string | null;
+  trailerKeyFr: string | null;
   overview: string;
   releaseYear: number | null;
   externalRating: number | null;
@@ -188,7 +191,7 @@ export async function getReelCandidatePool(
   const { data, error } = await supabase
     .from("movies_cache")
     .select(
-      "tmdb_id, title, poster_path, backdrop_path, trailer_key, trailer_videos, overview, release_year, external_rating, genre_ids, director, cast_members, original_language, popularity",
+      "tmdb_id, title, poster_path, backdrop_path, trailer_key, trailer_key_tr, trailer_key_fr, overview, release_year, external_rating, genre_ids, director, cast_members, original_language, popularity",
     )
     .not("trailer_key", "is", null)
     .order("popularity", { ascending: false })
@@ -203,7 +206,8 @@ export async function getReelCandidatePool(
       posterPath: row.poster_path,
       backdropPath: row.backdrop_path,
       trailerKey: row.trailer_key!,
-      trailerVideos: (row.trailer_videos as unknown as TmdbVideo[] | null) ?? [],
+      trailerKeyTr: row.trailer_key_tr,
+      trailerKeyFr: row.trailer_key_fr,
       overview: row.overview ?? "",
       releaseYear: row.release_year,
       externalRating: row.external_rating,

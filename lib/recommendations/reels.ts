@@ -1,5 +1,4 @@
 import type { ReelCandidate } from "@/lib/tmdb/cache";
-import { pickTrailerForLanguage } from "@/lib/tmdb/client";
 import type { TasteProfile } from "./taste-profile";
 import { computeMoffyMatch, type MatchableMovie } from "./moffy-match";
 
@@ -53,12 +52,12 @@ export function buildReelQueue(
   uiLanguage: string = "en",
 ): ScoredReel[] {
   const scored: ScoredReel[] = candidates.map((c) => {
-    const picked = pickTrailerForLanguage(c.trailerVideos, uiLanguage);
+    const dubbedKey = uiLanguage === "tr" ? c.trailerKeyTr : uiLanguage === "fr" ? c.trailerKeyFr : null;
     return {
       ...c,
       matchPercent: computeMoffyMatch(profile, toMatchable(c)),
-      resolvedTrailerKey: picked?.key ?? c.trailerKey,
-      isDubbed: picked?.isDubbed ?? false,
+      resolvedTrailerKey: dubbedKey ?? c.trailerKey,
+      isDubbed: dubbedKey != null,
     };
   });
 

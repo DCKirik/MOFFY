@@ -66,26 +66,20 @@ export function pickTrailerKey(detail: TmdbMovieDetail): string | null {
   return bestPick(videos)?.key ?? null;
 }
 
-export interface LanguageAwareTrailer {
-  key: string;
-  isDubbed: boolean;
-}
-
 // TMDB sometimes carries a separate trailer per market (e.g. a French
 // distributor's own YouTube upload, tagged iso_639_1: "fr") alongside the
-// original — that's a real dub, not a guess. Falls back to the default
-// pick (whatever language that happens to be) when no market-specific one
-// exists, and says so via isDubbed so the caller can be honest about it
-// rather than silently pretending everything's in the preferred language.
-export function pickTrailerForLanguage(
-  videos: TmdbVideo[],
-  preferredLanguage: string,
-): LanguageAwareTrailer | null {
-  const youtube = videos.filter((v) => v.site === "YouTube");
-  if (preferredLanguage !== "en") {
-    const inLanguage = bestPick(youtube.filter((v) => v.iso_639_1 === preferredLanguage));
-    if (inLanguage) return { key: inLanguage.key, isDubbed: true };
-  }
-  const fallback = bestPick(youtube);
-  return fallback ? { key: fallback.key, isDubbed: false } : null;
+// original — that's a real dub, not a guess. Computed once at cache time
+// into its own trailer_key_tr/trailer_key_fr column (see cacheMovie)
+// rather than picked at request time, so a specific movie's dub link can
+// be spot-checked or hand-corrected if TMDB's own tagging on a video is
+// ever wrong (reported concern: a language-tagged video can occasionally
+// not actually be that movie's dub). Deliberately requires official:true
+// here — stricter than the general bestPick() fallback — since this
+// result gets presented to the viewer as "yes, this is dubbed," not just
+// "closest thing we found."
+export function pickOfficialTrailerForLanguage(videos: TmdbVideo[], language: string): string | null {
+  const candidates = videos.filter(
+    (v) => v.site === "YouTube" && v.iso_639_1 === language && v.official && (v.type === "Trailer" || v.type === "Teaser"),
+  );
+  return bestPick(candidates)?.key ?? null;
 }

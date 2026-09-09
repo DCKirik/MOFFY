@@ -261,6 +261,14 @@ async function fetchAndUpsertAll(ids) {
       videos.find((v) => v.type === "Trailer") ??
       videos.find((v) => v.type === "Teaser");
     const trailerKey = trailer?.key ?? null;
+    // Dedicated per-language columns require official:true specifically
+    // — stricter than the general trailerKey fallback above, since this
+    // gets presented to the viewer as "yes, this is a real dub."
+    const officialDub = (lang) =>
+      videos.find((v) => v.iso_639_1 === lang && v.official && (v.type === "Trailer" || v.type === "Teaser"))
+        ?.key ?? null;
+    const trailerKeyTr = officialDub("tr");
+    const trailerKeyFr = officialDub("fr");
 
     buffer.push({
       tmdb_id: detail.id,
@@ -282,6 +290,8 @@ async function fetchAndUpsertAll(ids) {
       production_companies: companies,
       trailer_key: trailerKey,
       trailer_videos: videos.filter((v) => v.type === "Trailer" || v.type === "Teaser"),
+      trailer_key_tr: trailerKeyTr,
+      trailer_key_fr: trailerKeyFr,
       search_blob: searchBlob,
       cached_at: new Date().toISOString(),
     });
