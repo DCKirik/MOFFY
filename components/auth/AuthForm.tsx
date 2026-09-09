@@ -8,18 +8,25 @@ export function AuthForm({
   title,
   submitLabel,
   error,
+  notice,
   footer,
 }: {
   action: (formData: FormData) => void;
   title: string;
   submitLabel: string;
   error?: string;
+  notice?: string;
   footer: ReactNode;
 }) {
   return (
     <div className="flex min-h-screen items-center justify-center px-4">
       <Card className="w-full max-w-sm">
         <h1 className="mb-6 text-2xl font-bold text-brand-ink">{title}</h1>
+        {notice && (
+          <p className="mb-4 rounded-lg bg-brand-yellow/25 px-3 py-2 text-sm text-brand-ink">
+            {notice}
+          </p>
+        )}
         {error && (
           <p className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
             {error}
