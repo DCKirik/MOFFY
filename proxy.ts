@@ -1,7 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-const PUBLIC_PATHS = ["/login", "/signup"];
+const PUBLIC_PATHS = ["/login", "/signup", "/welcome"];
 const ONBOARDING_PATH = "/onboarding";
 
 export async function proxy(request: NextRequest) {
@@ -35,6 +35,10 @@ export async function proxy(request: NextRequest) {
   // one and silently missed /movie/[id]).
   if (!user) {
     if (isPublicPath) return response;
+    // The app's actual entry point gets the branded welcome/splash screen,
+    // not an immediate login form — everything else deep-links straight
+    // to login as before.
+    if (path === "/") return NextResponse.redirect(new URL("/welcome", request.url));
     return NextResponse.redirect(new URL("/login", request.url));
   }
 

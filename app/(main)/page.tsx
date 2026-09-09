@@ -17,7 +17,7 @@ export default async function HomePage() {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
+  if (!user) redirect("/welcome");
 
   const [popular, pool, profile] = await Promise.all([
     getPopularMovies(),
