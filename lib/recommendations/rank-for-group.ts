@@ -85,5 +85,9 @@ export function pickDiverseByGenre(
     }
   }
 
-  return picked.sort((a, b) => b.groupScore - a.groupScore);
+  // Deliberately not re-sorted by score — the round-robin order above is
+  // what actually spreads genres across the pathway's watch sequence
+  // (position 1, 2, 3...); sorting by score afterward would undo that and
+  // could cluster one genre at the front again by coincidence.
+  return picked;
 }
