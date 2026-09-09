@@ -11,10 +11,10 @@ export function Button({
   return (
     <button
       className={cn(
-        "inline-flex items-center justify-center rounded-xl2 px-5 py-2.5 font-semibold transition-colors disabled:opacity-50 disabled:pointer-events-none",
-        variant === "primary" && "bg-brand-yellow text-brand-ink hover:bg-brand-yellow-dark",
-        variant === "secondary" && "bg-brand-orange text-white hover:opacity-90",
-        variant === "ghost" && "bg-transparent text-brand-ink hover:bg-black/5",
+        "inline-flex cursor-pointer items-center justify-center rounded-xl2 px-5 py-2.5 font-semibold transition-all duration-200 active:scale-95 disabled:opacity-50 disabled:pointer-events-none disabled:active:scale-100",
+        variant === "primary" && "bg-brand-yellow text-brand-bg hover:bg-brand-yellow-dark",
+        variant === "secondary" && "bg-brand-orange text-white hover:bg-brand-orange-dark",
+        variant === "ghost" && "bg-transparent text-brand-ink hover:bg-white/10",
         className,
       )}
       {...props}

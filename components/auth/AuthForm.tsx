@@ -21,29 +21,29 @@ export function AuthForm({
   return (
     <div className="flex min-h-screen items-center justify-center px-4">
       <Card className="w-full max-w-sm">
-        <h1 className="mb-6 text-2xl font-bold text-brand-ink">{title}</h1>
+        <h1 className="mb-6 font-display text-2xl text-brand-ink">{title}</h1>
         {notice && (
-          <p className="mb-4 rounded-lg bg-brand-yellow/25 px-3 py-2 text-sm text-brand-ink">
+          <p className="mb-4 rounded-lg bg-brand-yellow/15 px-3 py-2 text-sm text-brand-yellow">
             {notice}
           </p>
         )}
         {error && (
-          <p className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
+          <p className="mb-4 rounded-lg bg-red-500/10 px-3 py-2 text-sm text-red-400">
             {error}
           </p>
         )}
         <form action={action} className="flex flex-col gap-4">
-          <label className="flex flex-col gap-1 text-sm font-medium">
+          <label className="flex flex-col gap-1 text-sm font-medium text-brand-ink/80">
             Email
             <input
               name="email"
               type="email"
               required
               autoComplete="email"
-              className="rounded-lg border border-black/10 px-3 py-2 outline-none focus:border-brand-orange"
+              className="rounded-lg border border-white/15 bg-brand-surface-2 px-3 py-2 text-brand-ink outline-none focus:border-brand-orange"
             />
           </label>
-          <label className="flex flex-col gap-1 text-sm font-medium">
+          <label className="flex flex-col gap-1 text-sm font-medium text-brand-ink/80">
             Password
             <input
               name="password"
@@ -51,7 +51,7 @@ export function AuthForm({
               required
               minLength={6}
               autoComplete="current-password"
-              className="rounded-lg border border-black/10 px-3 py-2 outline-none focus:border-brand-orange"
+              className="rounded-lg border border-white/15 bg-brand-surface-2 px-3 py-2 text-brand-ink outline-none focus:border-brand-orange"
             />
           </label>
           <Button type="submit" className="mt-2">

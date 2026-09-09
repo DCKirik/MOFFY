@@ -38,7 +38,7 @@ export default async function OnboardingPage() {
   return (
     <div className="mx-auto flex min-h-screen max-w-3xl flex-col gap-6 px-6 py-10">
       <div>
-        <h1 className="text-2xl font-bold text-brand-ink">Rate a few movies</h1>
+        <h1 className="font-display text-2xl text-brand-ink">Rate a few movies</h1>
         <p className="text-brand-ink/60">
           Rate at least {ONBOARDING_MIN_RATINGS} to help Moffy learn your taste — genres, actors,
           and directors you like.

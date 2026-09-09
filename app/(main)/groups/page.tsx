@@ -29,13 +29,13 @@ export default async function GroupsPage() {
   return (
     <div className="flex flex-col gap-8">
       <div>
-        <h1 className="text-2xl font-bold text-brand-ink">Groups</h1>
+        <h1 className="font-display text-2xl text-brand-ink">Groups</h1>
         <form action={createGroup} className="mt-3 flex gap-2">
           <input
             name="name"
             placeholder="New group name, e.g. Canım Ailem"
             required
-            className="w-full rounded-xl2 border border-black/10 bg-white px-4 py-2.5 outline-none focus:border-brand-orange"
+            className="w-full rounded-xl2 border border-white/15 bg-brand-surface px-4 py-2.5 text-brand-ink outline-none focus:border-brand-orange"
           />
           <Button type="submit" className="shrink-0">
             Create
@@ -51,7 +51,7 @@ export default async function GroupsPage() {
         <div className="flex flex-col gap-2">
           {groups.map((g) => (
             <Link key={g.id} href={`/groups/${g.id}`}>
-              <Card className="flex items-center justify-between">
+              <Card className="flex items-center justify-between transition-colors hover:border-brand-orange/40">
                 <div className="flex items-center gap-3">
                   <Avatar url={g.avatar_url} name={g.name} />
                   <p className="font-semibold text-brand-ink">{g.name}</p>

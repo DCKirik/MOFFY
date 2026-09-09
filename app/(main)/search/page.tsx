@@ -19,11 +19,11 @@ export default async function SearchPage({
           type="search"
           defaultValue={query}
           placeholder="Search for a movie..."
-          className="w-full rounded-xl2 border border-black/10 bg-white px-4 py-2.5 outline-none focus:border-brand-orange"
+          className="w-full rounded-xl2 border border-white/15 bg-brand-surface px-4 py-2.5 text-brand-ink outline-none focus:border-brand-orange"
         />
         <button
           type="submit"
-          className="shrink-0 rounded-xl2 bg-brand-yellow px-5 py-2.5 font-semibold text-brand-ink hover:bg-brand-yellow-dark"
+          className="shrink-0 cursor-pointer rounded-xl2 bg-brand-yellow px-5 py-2.5 font-semibold text-brand-bg transition-colors hover:bg-brand-yellow-dark"
         >
           Search
         </button>

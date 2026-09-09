@@ -87,7 +87,7 @@ export default async function GroupRecommendationsPage({
   return (
     <div className="flex flex-col gap-8">
       <div>
-        <h1 className="text-2xl font-bold text-brand-ink">{group.name} — Recommendations</h1>
+        <h1 className="font-display text-2xl text-brand-ink">{group.name} — Recommendations</h1>
         <p className="text-sm text-brand-ink/60">
           Balances everyone&apos;s taste — {extreme ? "extreme match mode weights the least-satisfied member heavily" : "65% average / 35% least-satisfied member"}.
         </p>
@@ -99,12 +99,13 @@ export default async function GroupRecommendationsPage({
             <p className="mb-2 text-sm font-semibold text-brand-ink/70">Exclude genres</p>
             <div className="flex flex-wrap gap-x-4 gap-y-2">
               {TMDB_GENRES.map((g) => (
-                <label key={g.id} className="flex items-center gap-1.5 text-sm">
+                <label key={g.id} className="flex items-center gap-1.5 text-sm text-brand-ink/80">
                   <input
                     type="checkbox"
                     name="excludeGenres"
                     value={g.id}
                     defaultChecked={excludeGenreIds.has(g.id)}
+                    className="accent-brand-orange"
                   />
                   {g.name}
                 </label>
@@ -112,7 +113,7 @@ export default async function GroupRecommendationsPage({
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-6">
-            <label className="flex items-center gap-2 text-sm">
+            <label className="flex items-center gap-2 text-sm text-brand-ink/80">
               Minimum rating
               <input
                 type="number"
@@ -121,21 +122,21 @@ export default async function GroupRecommendationsPage({
                 max={10}
                 step={0.5}
                 defaultValue={sp.minRating ?? ""}
-                className="w-20 rounded-lg border border-black/10 px-2 py-1"
+                className="w-20 rounded-lg border border-white/15 bg-brand-surface-2 px-2 py-1 text-brand-ink"
               />
             </label>
-            <label className="flex items-center gap-1.5 text-sm">
-              <input type="checkbox" name="nobodyWatched" value="1" defaultChecked={nobodyWatched} />
+            <label className="flex items-center gap-1.5 text-sm text-brand-ink/80">
+              <input type="checkbox" name="nobodyWatched" value="1" defaultChecked={nobodyWatched} className="accent-brand-orange" />
               Nobody has watched
             </label>
-            <label className="flex items-center gap-1.5 text-sm">
-              <input type="checkbox" name="extreme" value="1" defaultChecked={extreme} />
+            <label className="flex items-center gap-1.5 text-sm text-brand-ink/80">
+              <input type="checkbox" name="extreme" value="1" defaultChecked={extreme} className="accent-brand-orange" />
               Extreme Match
             </label>
           </div>
           <button
             type="submit"
-            className="self-start rounded-xl2 bg-brand-yellow px-5 py-2.5 font-semibold text-brand-ink hover:bg-brand-yellow-dark"
+            className="cursor-pointer self-start rounded-xl2 bg-brand-yellow px-5 py-2.5 font-semibold text-brand-bg transition-colors hover:bg-brand-yellow-dark"
           >
             Apply Filters
           </button>

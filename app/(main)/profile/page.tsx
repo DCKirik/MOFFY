@@ -53,7 +53,7 @@ export default async function ProfilePage() {
         <div className="flex items-center gap-4">
           <Avatar url={profile.avatar_url} name={profile.display_name ?? profile.username} size={72} />
           <div>
-            <h1 className="text-2xl font-bold text-brand-ink">
+            <h1 className="font-display text-2xl text-brand-ink">
               {profile.display_name ?? profile.username}
             </h1>
             <p className="text-sm text-brand-ink/50">@{profile.username}</p>
@@ -84,7 +84,7 @@ export default async function ProfilePage() {
             {topGenres.map((g) => (
               <span
                 key={g.name}
-                className="rounded-full bg-brand-yellow/40 px-3 py-1 text-sm font-semibold text-brand-ink"
+                className="rounded-full bg-brand-yellow/15 px-3 py-1 text-sm font-semibold text-brand-yellow"
               >
                 {g.name}
               </span>

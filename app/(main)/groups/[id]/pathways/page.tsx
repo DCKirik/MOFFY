@@ -39,13 +39,13 @@ export default async function GroupPathwaysPage({
 
   return (
     <div className="flex flex-col gap-8">
-      <h1 className="text-2xl font-bold text-brand-ink">{group.name} — Pathways</h1>
+      <h1 className="font-display text-2xl text-brand-ink">{group.name} — Pathways</h1>
 
       <section>
         <h2 className="mb-3 text-sm font-semibold text-brand-ink/70">Main Pathway</h2>
         {mainPathway ? (
           <Link href={`/groups/${groupId}/pathways/${mainPathway.id}`}>
-            <Card>{mainPathway.name}</Card>
+            <Card className="transition-colors hover:border-brand-orange/40">{mainPathway.name}</Card>
           </Link>
         ) : canCreate ? (
           <Link href={`/groups/${groupId}/pathways/new?type=main`}>
@@ -71,7 +71,7 @@ export default async function GroupPathwaysPage({
           <div className="flex flex-col gap-2">
             {themedPathways.map((p) => (
               <Link key={p.id} href={`/groups/${groupId}/pathways/${p.id}`}>
-                <Card>{p.name}</Card>
+                <Card className="transition-colors hover:border-brand-orange/40">{p.name}</Card>
               </Link>
             ))}
           </div>

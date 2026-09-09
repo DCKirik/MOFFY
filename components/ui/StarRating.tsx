@@ -20,9 +20,9 @@ export function StarRating({
           disabled={!onRate}
           onClick={() => onRate?.(star)}
           className={cn(
-            "text-2xl leading-none",
-            rating >= star ? "text-brand-orange" : "text-black/15",
-            onRate && "cursor-pointer",
+            "text-2xl leading-none transition-transform duration-150",
+            rating >= star ? "text-brand-yellow" : "text-white/15",
+            onRate && "cursor-pointer hover:scale-110 active:scale-95",
           )}
         >
           ★

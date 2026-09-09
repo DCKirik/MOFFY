@@ -78,7 +78,7 @@ export default async function PathwayDetailPage({
   return (
     <div className="flex flex-col gap-8">
       <div>
-        <h1 className="text-2xl font-bold text-brand-ink">{pathway.name}</h1>
+        <h1 className="font-display text-2xl text-brand-ink">{pathway.name}</h1>
         <p className="text-sm text-brand-ink/50">
           {pathway.type === "main" ? "Main Pathway" : "Themed Pathway"} · {total} movies ·{" "}
           {memberIds.length} members
@@ -108,15 +108,15 @@ export default async function PathwayDetailPage({
                         watchedByMovie.get(pathwayMovies[i - 1].movie_id)?.size ===
                           memberIds.length && memberIds.length > 0
                           ? "bg-brand-orange"
-                          : "bg-black/10"
+                          : "bg-white/10"
                       }`}
                     />
                   )}
                   <div className="flex w-20 flex-col items-center gap-1.5">
                     <Link
                       href={`/movie/${pm.movie_id}`}
-                      className={`relative block h-16 w-16 overflow-hidden rounded-full border-4 ${
-                        groupComplete ? "border-brand-orange" : "border-black/10"
+                      className={`relative block h-16 w-16 overflow-hidden rounded-full border-4 transition-colors ${
+                        groupComplete ? "border-brand-orange" : "border-white/15"
                       }`}
                     >
                       {poster ? (
@@ -128,7 +128,7 @@ export default async function PathwayDetailPage({
                           className="object-cover"
                         />
                       ) : (
-                        <div className="flex h-full w-full items-center justify-center bg-black/5 text-[10px]">
+                        <div className="flex h-full w-full items-center justify-center bg-brand-surface-2 text-[10px]">
                           {movie?.title}
                         </div>
                       )}
@@ -140,7 +140,7 @@ export default async function PathwayDetailPage({
                       <button
                         type="submit"
                         disabled={iWatched}
-                        className={`text-[10px] font-semibold uppercase ${
+                        className={`cursor-pointer text-[10px] font-semibold uppercase transition-colors disabled:cursor-default ${
                           iWatched ? "text-brand-orange" : "text-brand-ink/40 hover:text-brand-orange"
                         }`}
                       >
@@ -174,9 +174,9 @@ export default async function PathwayDetailPage({
                           {watched}/{total}
                         </span>
                       </div>
-                      <div className="mt-1 h-2 rounded-full bg-black/5">
+                      <div className="mt-1 h-2 rounded-full bg-white/10">
                         <div
-                          className="h-2 rounded-full bg-brand-orange transition-all"
+                          className="h-2 rounded-full bg-brand-orange transition-all duration-500"
                           style={{ width: `${pct}%` }}
                         />
                       </div>

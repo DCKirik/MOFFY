@@ -1,16 +1,23 @@
 @import "tailwindcss";
 
 @theme {
+  /* Cinema-dark base, rose-red as the one bright signal, gold reserved for
+     ratings/match scores — the palette of a theater with the lights down. */
+  --color-brand-bg: #0f0f14;
+  --color-brand-surface: #1a1a22;
+  --color-brand-surface-2: #242430;
+  --color-brand-ink: #f5f3f7;
+  --color-brand-orange: #e11d48;
+  --color-brand-orange-dark: #be123c;
   --color-brand-yellow: #f5b722;
   --color-brand-yellow-dark: #d89a0f;
-  --color-brand-orange: #f2782f;
-  --color-brand-bg: #fffbf2;
-  --color-brand-ink: #241c10;
-  --radius-xl2: 1.25rem;
+  --radius-xl2: 1.5rem;
+  --font-display: var(--font-righteous), sans-serif;
+  --font-sans: var(--font-poppins), sans-serif;
 }
 
 body {
   background: var(--color-brand-bg);
   color: var(--color-brand-ink);
-  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-family: var(--font-sans);
 }

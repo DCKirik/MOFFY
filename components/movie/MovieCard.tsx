@@ -21,14 +21,14 @@ export function MovieCard({
   const poster = tmdbImage(posterPath, "w342");
   return (
     <Link href={`/movie/${id}`} className="group block w-36 shrink-0 sm:w-44">
-      <div className="relative aspect-[2/3] overflow-hidden rounded-xl2 bg-black/5">
+      <div className="relative aspect-[2/3] overflow-hidden rounded-xl2 bg-brand-surface">
         {poster ? (
           <Image
             src={poster}
             alt={title}
             fill
             sizes="(max-width: 640px) 144px, 176px"
-            className="object-cover transition-transform group-hover:scale-105"
+            className="object-cover transition-transform duration-300 group-hover:scale-105"
           />
         ) : (
           <div className="flex h-full items-center justify-center p-2 text-center text-xs text-brand-ink/50">
@@ -41,7 +41,7 @@ export function MovieCard({
           </div>
         )}
       </div>
-      <p className="mt-2 truncate text-sm font-semibold text-brand-ink">{title}</p>
+      <p className="mt-2 truncate text-sm font-semibold text-brand-ink group-hover:text-brand-orange transition-colors">{title}</p>
       <p className="text-xs text-brand-ink/60">
         {year ?? ""}
         {externalRating != null && year ? " · " : ""}

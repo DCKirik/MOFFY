@@ -37,7 +37,7 @@ export function Carousel({ items }: { items: CarouselItem[] }) {
     <div>
       <Link
         href={`/movie/${item.id}`}
-        className="relative block aspect-[16/7] w-full overflow-hidden rounded-xl2 bg-black/10"
+        className="relative block aspect-[16/7] w-full overflow-hidden rounded-xl2 bg-brand-surface"
       >
         {backdrop && (
           <Image src={backdrop} alt={item.title} fill priority className="object-cover" />
@@ -45,7 +45,7 @@ export function Carousel({ items }: { items: CarouselItem[] }) {
         <div className="absolute inset-x-0 bottom-0 bg-linear-to-t from-black/80 to-transparent p-5">
           <div className="flex items-end justify-between gap-3">
             <div>
-              <p className="text-lg font-bold text-white">{item.title}</p>
+              <p className="font-display text-lg text-white">{item.title}</p>
               <p className="text-sm text-white/70">
                 {item.year}
                 {item.externalRating != null ? ` · ★ ${item.externalRating.toFixed(1)}` : ""}
@@ -64,7 +64,7 @@ export function Carousel({ items }: { items: CarouselItem[] }) {
               aria-label={`Show slide ${i + 1}`}
               onClick={() => setIndex(i)}
               className={`h-1.5 rounded-full transition-all ${
-                i === index ? "w-6 bg-brand-orange" : "w-1.5 bg-black/15"
+                i === index ? "w-6 bg-brand-orange" : "w-1.5 bg-white/20"
               }`}
             />
           ))}

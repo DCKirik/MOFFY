@@ -32,7 +32,7 @@ export function OnboardingGrid({
       <div className="grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-3 md:grid-cols-4">
         {movies.map((movie) => (
           <div key={movie.id} className="flex flex-col items-center gap-2">
-            <div className="relative aspect-[2/3] w-full overflow-hidden rounded-xl2 bg-black/5">
+            <div className="relative aspect-[2/3] w-full overflow-hidden rounded-xl2 bg-brand-surface">
               {movie.posterPath ? (
                 <Image
                   src={tmdbImage(movie.posterPath, "w342")!}
@@ -61,7 +61,7 @@ export function OnboardingGrid({
         ))}
       </div>
 
-      <div className="fixed inset-x-0 bottom-0 border-t border-black/5 bg-brand-bg/95 px-6 py-4 backdrop-blur">
+      <div className="fixed inset-x-0 bottom-0 border-t border-white/10 bg-brand-bg/95 px-6 py-4 backdrop-blur">
         <div className="mx-auto flex max-w-3xl items-center justify-between">
           <p className="text-sm text-brand-ink/70">
             {ratedCount} / {ONBOARDING_MIN_RATINGS}+ rated

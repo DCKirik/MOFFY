@@ -29,7 +29,7 @@ export default async function PathwaysPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-2xl font-bold text-brand-ink">Pathways</h1>
+      <h1 className="font-display text-2xl text-brand-ink">Pathways</h1>
 
       {!pathways || pathways.length === 0 ? (
         <p className="text-sm text-brand-ink/50">
@@ -39,7 +39,7 @@ export default async function PathwaysPage() {
         <div className="flex flex-col gap-2">
           {pathways.map((p) => (
             <Link key={p.id} href={`/groups/${p.group_id}/pathways/${p.id}`}>
-              <Card className="flex items-center justify-between">
+              <Card className="flex items-center justify-between transition-colors hover:border-brand-orange/40">
                 <div>
                   <p className="font-semibold text-brand-ink">{p.name}</p>
                   <p className="text-xs text-brand-ink/50">{groupNameById.get(p.group_id)}</p>

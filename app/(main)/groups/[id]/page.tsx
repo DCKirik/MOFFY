@@ -72,7 +72,7 @@ export default async function GroupDetailPage({
         <div className="flex items-center gap-3">
           <Avatar url={group.avatar_url} name={group.name} size={56} />
           <div>
-            <h1 className="text-2xl font-bold text-brand-ink">{group.name}</h1>
+            <h1 className="font-display text-2xl text-brand-ink">{group.name}</h1>
             <p className="text-sm text-brand-ink/50">
               {members.length} member{members.length === 1 ? "" : "s"}
             </p>

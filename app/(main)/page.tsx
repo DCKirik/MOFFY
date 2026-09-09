@@ -56,16 +56,16 @@ export default async function HomePage() {
   return (
     <div className="flex flex-col gap-10">
       <section>
-        <h2 className="mb-3 text-lg font-bold text-brand-ink">This Week&apos;s Popular Movies</h2>
+        <h2 className="mb-3 font-display text-lg text-brand-ink">This Week&apos;s Popular Movies</h2>
         <Carousel items={carouselItems} />
       </section>
 
       {bestMatchDetail && (
         <section>
-          <h2 className="mb-3 text-lg font-bold text-brand-ink">Your Best Match</h2>
+          <h2 className="mb-3 font-display text-lg text-brand-ink">Your Best Match</h2>
           <Link
             href={`/movie/${bestMatchDetail.id}`}
-            className="flex gap-4 rounded-xl2 border border-black/5 bg-white p-4 shadow-sm hover:shadow-md"
+            className="flex gap-4 rounded-xl2 border border-white/10 bg-brand-surface p-4 shadow-lg shadow-black/20 transition-colors hover:border-brand-orange/40"
           >
             {tmdbImage(bestMatchDetail.poster_path, "w200") && (
               <Image
@@ -78,7 +78,7 @@ export default async function HomePage() {
             )}
             <div className="flex min-w-0 flex-col justify-center gap-1">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="text-xl font-bold text-brand-ink">{bestMatchDetail.title}</span>
+                <span className="font-display text-xl text-brand-ink">{bestMatchDetail.title}</span>
                 {bestMatchScore != null && <MatchBadge percent={bestMatchScore} />}
               </div>
               <p className="text-sm text-brand-ink/60">{bestMatchReason}</p>
@@ -89,7 +89,7 @@ export default async function HomePage() {
 
       {recommended.length > 0 && (
         <section>
-          <h2 className="mb-3 text-lg font-bold text-brand-ink">Recommended For You</h2>
+          <h2 className="mb-3 font-display text-lg text-brand-ink">Recommended For You</h2>
           <div className="flex gap-4 overflow-x-auto pb-2">
             {recommended.map(({ movie, match }) => (
               <MovieCard

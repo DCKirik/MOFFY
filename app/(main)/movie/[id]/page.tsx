@@ -83,7 +83,7 @@ export default async function MovieDetailPage({
               className="rounded-xl2 object-cover shadow-md"
             />
           ) : (
-            <div className="flex aspect-[2/3] items-center justify-center rounded-xl2 bg-black/5 p-4 text-center text-sm">
+            <div className="flex aspect-[2/3] items-center justify-center rounded-xl2 bg-brand-surface p-4 text-center text-sm">
               {detail.title}
             </div>
           )}
@@ -91,7 +91,7 @@ export default async function MovieDetailPage({
 
         <div className="flex flex-1 flex-col gap-3">
           <div className="flex flex-wrap items-center gap-3">
-            <h1 className="text-3xl font-bold text-brand-ink">{detail.title}</h1>
+            <h1 className="font-display text-3xl text-brand-ink">{detail.title}</h1>
             {matchPercent != null && <MatchBadge percent={matchPercent} />}
           </div>
           <p className="text-sm text-brand-ink/60">
@@ -114,7 +114,7 @@ export default async function MovieDetailPage({
               {community?.rating_count ? ` (${community.rating_count})` : ""}
             </span>
             {watched && (
-              <span className="rounded-full bg-brand-yellow/40 px-2.5 py-0.5 text-xs font-bold uppercase text-brand-ink">
+              <span className="rounded-full bg-brand-yellow/15 px-2.5 py-0.5 text-xs font-bold uppercase text-brand-yellow">
                 Watched
               </span>
             )}
@@ -140,7 +140,7 @@ export default async function MovieDetailPage({
             {trProviders.flatrate.map((p) => (
               <div
                 key={p.provider_id}
-                className="flex items-center gap-2 rounded-lg bg-black/5 px-3 py-1.5"
+                className="flex items-center gap-2 rounded-lg bg-brand-surface-2 px-3 py-1.5"
               >
                 {p.logo_path && (
                   <Image
