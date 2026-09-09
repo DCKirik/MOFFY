@@ -76,7 +76,7 @@ export default async function HomePage() {
                 className="rounded-lg object-cover"
               />
             )}
-            <div className="flex flex-col justify-center gap-1">
+            <div className="flex min-w-0 flex-col justify-center gap-1">
               <div className="flex flex-wrap items-center gap-2">
                 <span className="text-xl font-bold text-brand-ink">{bestMatchDetail.title}</span>
                 {bestMatchScore != null && <MatchBadge percent={bestMatchScore} />}
