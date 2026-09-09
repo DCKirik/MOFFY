@@ -73,7 +73,7 @@ export function SearchBar({ initialQuery }: { initialQuery: string }) {
       </form>
 
       {open && suggestions.length > 0 && (
-        <div className="absolute inset-x-0 top-full z-20 mt-2 flex flex-col gap-1 rounded-xl2 border border-white/10 bg-brand-surface p-2 shadow-[0_0_24px_4px_rgba(245,183,34,0.15),0_10px_25px_-5px_rgba(0,0,0,0.5)]">
+        <div className="absolute inset-x-0 top-full z-20 mt-2 flex flex-col gap-1 rounded-xl2 border border-white/10 bg-brand-surface p-2 shadow-[0_0_24px_4px_rgba(255,199,44,0.15),0_10px_25px_-5px_rgba(0,0,0,0.5)]">
           {suggestions.map((s) => (
             <Link
               key={s.id}

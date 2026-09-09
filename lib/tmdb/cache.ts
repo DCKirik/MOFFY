@@ -120,17 +120,34 @@ export async function getMoviePool(
 // Page-by-page variant for infinite scroll (Discover). 1-indexed to match
 // TMDB's own paging convention, which the same InfiniteMovieGrid also
 // drives for Search.
+//
+// A language filter sorts by rating instead of popularity — "browse
+// French movies" reads as "show me the best ones," not "show me whatever
+// has the most raw buzz" (popularity skews hard toward English-language
+// blockbusters regardless of which language pool you're filtering into).
+// movies_cache has no vote_count column (never cached), so a pure rating
+// sort gets swamped by a long tail of one- or two-vote titles sitting at
+// a lucky 10.0 — confirmed live for French. A light popularity floor is
+// a rough stand-in for "enough people actually rated this to trust it,"
+// without requiring a vote_count backfill across the whole catalog.
+const MIN_POPULARITY_FOR_RATING_SORT = 5;
+
 export async function getMoviePoolPage(
   supabase: SupabaseClient<Database>,
   page: number,
   pageSize = 40,
   genreId?: number,
+  originalLanguage?: string,
 ): Promise<TmdbMovieSummary[]> {
   const from = (page - 1) * pageSize;
   const to = from + pageSize - 1;
-  let query = supabase.from("movies_cache").select(POOL_COLUMNS).order("popularity", { ascending: false });
+  const sortColumn = originalLanguage ? "external_rating" : "popularity";
+  let query = supabase.from("movies_cache").select(POOL_COLUMNS).order(sortColumn, { ascending: false });
   if (genreId != null) {
     query = query.overlaps("genre_ids", [genreId]);
+  }
+  if (originalLanguage) {
+    query = query.eq("original_language", originalLanguage).gt("popularity", MIN_POPULARITY_FOR_RATING_SORT);
   }
   const { data, error } = await query.range(from, to);
   if (error) console.error("getMoviePoolPage failed:", error.message);

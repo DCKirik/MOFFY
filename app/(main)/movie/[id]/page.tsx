@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import Image from "next/image";
+import Link from "next/link";
 import { getMovieDetail } from "@/lib/tmdb/client";
 import { cacheMovie } from "@/lib/tmdb/cache";
 import { tmdbImage } from "@/lib/tmdb/image";
@@ -13,6 +14,7 @@ import { TrailerButton } from "@/components/movie/TrailerButton";
 import { RatingControl } from "./RatingControl";
 import { CommentSection, type CommentWithAuthor } from "./CommentSection";
 import { pickTrailerKey } from "@/lib/tmdb/client";
+import { languageName } from "@/lib/tmdb/languages";
 
 function formatRuntime(minutes: number | null): string | null {
   if (!minutes) return null;
@@ -103,6 +105,11 @@ export default async function MovieDetailPage({
   const studio = detail.production_companies?.[0]?.name;
   const keywords = (detail.keywords?.keywords ?? []).slice(0, 8);
   const trailerKey = pickTrailerKey(detail);
+  const originalLanguageName = languageName(detail.original_language);
+  const otherLanguages = (detail.spoken_languages ?? [])
+    .filter((l) => l.iso_639_1 !== detail.original_language)
+    .map((l) => l.english_name || l.name)
+    .filter(Boolean);
 
   return (
     <div className="flex flex-col gap-6">
@@ -120,7 +127,7 @@ export default async function MovieDetailPage({
               alt={detail.title}
               width={342}
               height={513}
-              className="rounded-xl2 object-cover transition-shadow duration-300 shadow-[0_0_24px_3px_rgba(245,183,34,0.14)] hover:shadow-[0_0_40px_10px_rgba(245,183,34,0.32)]"
+              className="rounded-xl2 object-cover transition-shadow duration-300 shadow-[0_0_24px_3px_rgba(255,199,44,0.14)] hover:shadow-[0_0_40px_10px_rgba(255,199,44,0.32)]"
             />
           ) : (
             <div className="flex aspect-[2/3] items-center justify-center rounded-xl2 bg-brand-surface p-4 text-center text-sm">
@@ -185,6 +192,22 @@ export default async function MovieDetailPage({
                   {k.name}
                 </span>
               ))}
+            </div>
+          )}
+
+          {originalLanguageName && (
+            <div>
+              <h2 className="text-sm font-semibold text-brand-ink/70">Language</h2>
+              <p className="text-sm text-brand-ink/60">
+                Original:{" "}
+                <Link
+                  href={`/discover?lang=${detail.original_language}`}
+                  className="font-medium text-brand-orange hover:underline"
+                >
+                  {originalLanguageName}
+                </Link>
+                {otherLanguages.length > 0 && ` · Also available in ${otherLanguages.join(", ")}`}
+              </p>
             </div>
           )}
         </div>

@@ -34,7 +34,7 @@ export function TrailerButton({ videoKey, title }: { videoKey: string; title: st
           onClick={() => setOpen(false)}
         >
           <div
-            className="relative w-full max-w-3xl overflow-hidden rounded-xl2 border border-white/10 shadow-[0_0_60px_10px_rgba(245,183,34,0.15),0_20px_60px_-10px_rgba(0,0,0,0.7)]"
+            className="relative w-full max-w-3xl overflow-hidden rounded-xl2 border border-white/10 shadow-[0_0_60px_10px_rgba(255,199,44,0.15),0_20px_60px_-10px_rgba(0,0,0,0.7)]"
             onClick={(e) => e.stopPropagation()}
           >
             <button

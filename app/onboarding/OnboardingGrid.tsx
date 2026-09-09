@@ -124,7 +124,7 @@ export function OnboardingGrid({
       <div className="grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-3 md:grid-cols-4">
         {movies.map((movie) => (
           <div key={movie.id} className="flex flex-col items-center gap-2">
-            <div className="relative aspect-[2/3] w-full overflow-hidden rounded-xl2 bg-brand-surface transition-shadow duration-300 shadow-[0_0_14px_1px_rgba(245,183,34,0.10)] hover:shadow-[0_0_26px_5px_rgba(245,183,34,0.30)]">
+            <div className="relative aspect-[2/3] w-full overflow-hidden rounded-xl2 bg-brand-surface transition-shadow duration-300 shadow-[0_0_14px_1px_rgba(255,199,44,0.10)] hover:shadow-[0_0_26px_5px_rgba(255,199,44,0.30)]">
               {movie.posterPath ? (
                 <Image
                   src={tmdbImage(movie.posterPath, "w342")!}

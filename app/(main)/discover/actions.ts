@@ -4,9 +4,13 @@ import { createClient } from "@/lib/supabase/server";
 import { getMoviePoolPage } from "@/lib/tmdb/cache";
 import type { GridMovie } from "@/components/movie/InfiniteMovieGrid";
 
-export async function loadMoreDiscoverMovies(genreId: number | undefined, page: number): Promise<GridMovie[]> {
+export async function loadMoreDiscoverMovies(
+  genreId: number | undefined,
+  language: string | undefined,
+  page: number,
+): Promise<GridMovie[]> {
   const supabase = await createClient();
-  const movies = await getMoviePoolPage(supabase, page, 40, genreId);
+  const movies = await getMoviePoolPage(supabase, page, 40, genreId, language);
   return movies.map((m) => ({
     id: m.id,
     title: m.title,

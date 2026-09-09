@@ -37,7 +37,7 @@ export function Carousel({ items }: { items: CarouselItem[] }) {
     <div>
       <Link
         href={`/movie/${item.id}`}
-        className="relative block aspect-[16/7] w-full overflow-hidden rounded-xl2 bg-brand-surface transition-shadow duration-300 shadow-[0_0_20px_2px_rgba(245,183,34,0.10)] hover:shadow-[0_0_36px_8px_rgba(245,183,34,0.30)]"
+        className="relative block aspect-[16/7] w-full overflow-hidden rounded-xl2 bg-brand-surface transition-shadow duration-300 shadow-[0_0_20px_2px_rgba(255,199,44,0.10)] hover:shadow-[0_0_36px_8px_rgba(255,199,44,0.30)]"
       >
         {backdrop && (
           <Image src={backdrop} alt={item.title} fill priority className="object-cover" />

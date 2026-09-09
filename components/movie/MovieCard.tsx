@@ -21,7 +21,7 @@ export function MovieCard({
   const poster = tmdbImage(posterPath, "w342");
   return (
     <Link href={`/movie/${id}`} className="group block w-36 shrink-0 sm:w-44">
-      <div className="relative aspect-[2/3] overflow-hidden rounded-xl2 bg-brand-surface transition-shadow duration-300 shadow-[0_0_14px_1px_rgba(245,183,34,0.10)] group-hover:shadow-[0_0_26px_5px_rgba(245,183,34,0.30)]">
+      <div className="relative aspect-[2/3] overflow-hidden rounded-xl2 bg-brand-surface transition-shadow duration-300 shadow-[0_0_14px_1px_rgba(255,199,44,0.10)] group-hover:shadow-[0_0_26px_5px_rgba(255,199,44,0.30)]">
         {poster ? (
           <Image
             src={poster}

@@ -66,7 +66,7 @@ export default async function HomePage() {
           <h2 className="mb-3 font-display text-lg text-brand-ink">Your Best Match</h2>
           <Link
             href={`/movie/${bestMatchDetail.id}`}
-            className="flex gap-4 rounded-xl2 border border-white/10 bg-brand-surface p-4 transition-all duration-300 shadow-[0_0_18px_2px_rgba(245,183,34,0.10),0_10px_25px_-5px_rgba(0,0,0,0.35)] hover:border-brand-orange/40 hover:shadow-[0_0_34px_8px_rgba(245,183,34,0.28),0_14px_30px_-5px_rgba(0,0,0,0.4)]"
+            className="flex gap-4 rounded-xl2 border border-white/10 bg-brand-surface p-4 transition-all duration-300 shadow-[0_0_18px_2px_rgba(255,199,44,0.10),0_10px_25px_-5px_rgba(0,0,0,0.35)] hover:border-brand-orange/40 hover:shadow-[0_0_34px_8px_rgba(255,199,44,0.28),0_14px_30px_-5px_rgba(0,0,0,0.4)]"
           >
             {tmdbImage(bestMatchDetail.poster_path, "w200") && (
               <Image

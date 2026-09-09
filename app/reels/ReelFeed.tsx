@@ -343,7 +343,7 @@ function ReelSlide({
           aria-label="Like"
           className={`flex h-14 w-14 cursor-pointer items-center justify-center rounded-full text-2xl backdrop-blur-sm transition-all duration-200 active:scale-90 ${
             liked === true
-              ? "bg-brand-orange text-white shadow-[0_0_24px_6px_rgba(225,29,72,0.5)]"
+              ? "bg-brand-orange text-white shadow-[0_0_24px_6px_rgba(255,106,26,0.5)]"
               : "bg-black/50 text-white hover:bg-black/70"
           }`}
         >
@@ -367,7 +367,7 @@ function ReelSlide({
           aria-label={isSaved ? "Remove from saved" : "Save"}
           className={`flex h-12 w-12 cursor-pointer items-center justify-center rounded-full text-xl backdrop-blur-sm transition-all duration-200 active:scale-90 ${
             isSaved
-              ? "bg-brand-yellow text-brand-bg shadow-[0_0_20px_4px_rgba(245,183,34,0.4)]"
+              ? "bg-brand-yellow text-brand-bg shadow-[0_0_20px_4px_rgba(255,199,44,0.4)]"
               : "bg-black/50 text-white hover:bg-black/70"
           }`}
         >

@@ -121,7 +121,7 @@ export default async function PathwayDetailPage({
                       href={`/movie/${pm.movie_id}`}
                       className={`relative block h-16 w-16 overflow-hidden rounded-full border-4 transition-all duration-300 hover:scale-105 ${
                         groupComplete
-                          ? "border-brand-orange shadow-[0_0_20px_4px_rgba(225,29,72,0.35)]"
+                          ? "border-brand-orange shadow-[0_0_20px_4px_rgba(255,106,26,0.35)]"
                           : "border-white/15"
                       }`}
                     >
@@ -186,7 +186,7 @@ export default async function PathwayDetailPage({
                       </div>
                       <div className="mt-1 h-2 rounded-full bg-white/10">
                         <div
-                          className="h-2 rounded-full bg-brand-orange shadow-[0_0_8px_1px_rgba(225,29,72,0.5)] transition-[width] duration-700 ease-out"
+                          className="h-2 rounded-full bg-brand-orange shadow-[0_0_8px_1px_rgba(255,106,26,0.5)] transition-[width] duration-700 ease-out"
                           style={{ width: `${pct}%` }}
                         />
                       </div>
