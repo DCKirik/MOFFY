@@ -17,7 +17,7 @@ if (!TMDB_KEY || !SUPABASE_URL || !SERVICE_KEY) {
 }
 
 const TMDB_BASE = "https://api.themoviedb.org/3";
-const TARGET_TOTAL = 105000; // buffer above 100k — some detail fetches will fail/dedupe
+const TARGET_TOTAL = 400000; // high enough that decade + language buckets actually run instead of being cut off by earlier genre buckets alone crossing the old 105k cap
 const admin = createClient(SUPABASE_URL, SERVICE_KEY);
 
 function sleep(ms) {
