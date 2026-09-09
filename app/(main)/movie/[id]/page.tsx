@@ -11,6 +11,7 @@ import { Card } from "@/components/ui/Card";
 import { MatchBadge } from "@/components/ui/MatchBadge";
 import { TrailerButton } from "@/components/movie/TrailerButton";
 import { RatingControl } from "./RatingControl";
+import { CommentSection, type CommentWithAuthor } from "./CommentSection";
 import { pickTrailerKey } from "@/lib/tmdb/client";
 
 function formatRuntime(minutes: number | null): string | null {
@@ -37,7 +38,7 @@ export default async function MovieDetailPage({
     data: { user },
   } = await supabase.auth.getUser();
 
-  const [, communityRatingRes, myRatingRes, watchedRes, profile] = await Promise.all([
+  const [, communityRatingRes, myRatingRes, watchedRes, profile, commentsRes] = await Promise.all([
     cacheMovie(detail),
     supabase.rpc("movie_community_rating", { p_movie_id: id }).maybeSingle(),
     user
@@ -52,12 +53,46 @@ export default async function MovieDetailPage({
           .maybeSingle()
       : Promise.resolve({ data: null }),
     user ? computeTasteProfile(supabase, user.id) : Promise.resolve(null),
+    supabase
+      .from("movie_comments")
+      .select("id, user_id, body, created_at")
+      .eq("movie_id", id)
+      .order("created_at", { ascending: false })
+      .limit(200),
   ]);
 
   const community = communityRatingRes.data;
   const myRating = myRatingRes.data?.rating ?? 0;
   const watched = Boolean(watchedRes.data);
   const matchPercent = profile ? computeMoffyMatch(profile, detailToMatchable(detail)) : null;
+
+  const rawComments = commentsRes.data ?? [];
+  const authorIds = Array.from(new Set([...rawComments.map((c) => c.user_id), ...(user ? [user.id] : [])]));
+  const { data: authorProfiles } = authorIds.length
+    ? await supabase.from("profiles").select("id, username, display_name, avatar_url").in("id", authorIds)
+    : { data: [] };
+  const profileById = new Map((authorProfiles ?? []).map((p) => [p.id, p]));
+
+  const comments: CommentWithAuthor[] = rawComments.map((c) => {
+    const author = profileById.get(c.user_id);
+    return {
+      id: c.id,
+      userId: c.user_id,
+      body: c.body,
+      createdAt: c.created_at,
+      authorName: author?.display_name ?? author?.username ?? "Moffy user",
+      authorAvatarUrl: author?.avatar_url ?? null,
+    };
+  });
+
+  const myProfile = user ? profileById.get(user.id) : undefined;
+  const currentUser = user
+    ? {
+        id: user.id,
+        name: myProfile?.display_name ?? myProfile?.username ?? "You",
+        avatarUrl: myProfile?.avatar_url ?? null,
+      }
+    : null;
 
   const backdrop = tmdbImage(detail.backdrop_path, "original");
   const poster = tmdbImage(detail.poster_path, "w500");
@@ -180,6 +215,10 @@ export default async function MovieDetailPage({
         ) : (
           <p className="text-sm text-brand-ink/50">Not currently available to stream in Türkiye.</p>
         )}
+      </Card>
+
+      <Card>
+        <CommentSection movieId={id} initialComments={comments} currentUser={currentUser} />
       </Card>
     </div>
   );

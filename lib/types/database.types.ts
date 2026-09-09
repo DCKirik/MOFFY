@@ -266,6 +266,24 @@ export type Database = {
         Update: Partial<Database["public"]["Tables"]["saved_movies"]["Insert"]>;
         Relationships: [];
       };
+      movie_comments: {
+        Row: {
+          id: string;
+          user_id: string;
+          movie_id: number;
+          body: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          movie_id: number;
+          body: string;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["movie_comments"]["Insert"]>;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {
