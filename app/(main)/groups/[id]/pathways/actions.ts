@@ -16,7 +16,11 @@ export async function createPathway(groupId: string, formData: FormData) {
 
   const type = formData.get("type") === "main" ? "main" : "themed";
   const name = type === "main" ? "Main Pathway" : String(formData.get("name") ?? "").trim();
-  if (type === "themed" && !name) throw new Error("Name is required for themed pathways");
+  if (type === "themed" && !name) {
+    redirect(
+      `/groups/${groupId}/pathways/new?type=themed&error=${encodeURIComponent("Name is required for themed pathways")}`,
+    );
+  }
 
   const count = Math.min(Math.max(Number(formData.get("count") ?? 10) || 10, 3), 20);
   const excludeGenreIds = new Set(formData.getAll("excludeGenres").map((v) => Number(v)));
@@ -40,7 +44,11 @@ export async function createPathway(groupId: string, formData: FormData) {
     excludeMovieIds: new Set(),
   }).slice(0, count);
 
-  if (ranked.length === 0) throw new Error("No movies matched those filters — loosen them and try again");
+  if (ranked.length === 0) {
+    redirect(
+      `/groups/${groupId}/pathways/new?type=${type}&error=${encodeURIComponent("No movies matched those filters — loosen them and try again")}`,
+    );
+  }
 
   const pathwayId = crypto.randomUUID();
   const { error: pathwayError } = await supabase.from("pathways").insert({

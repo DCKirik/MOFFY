@@ -10,10 +10,10 @@ export default async function NewPathwayPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ type?: string }>;
+  searchParams: Promise<{ type?: string; error?: string }>;
 }) {
   const { id: groupId } = await params;
-  const { type } = await searchParams;
+  const { type, error } = await searchParams;
   const pathwayType = type === "main" ? "main" : "themed";
 
   const supabase = await createClient();
@@ -27,6 +27,10 @@ export default async function NewPathwayPage({
       <h1 className="text-2xl font-bold text-brand-ink">
         {pathwayType === "main" ? "Create Main Pathway" : "New Themed Pathway"}
       </h1>
+
+      {error && (
+        <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>
+      )}
 
       <Card>
         <form action={createPathway.bind(null, groupId)} className="flex flex-col gap-5">
