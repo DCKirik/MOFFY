@@ -17,6 +17,11 @@ export const ONBOARDING_SEED_MOVIES = [
   { id: 329, title: "Jurassic Park" },
   { id: 299534, title: "Avengers: Endgame" },
   { id: 419430, title: "Get Out" },
+  { id: 57892, title: "Vizontele" },
+  { id: 31060, title: "Recep İvedik" },
+  { id: 27275, title: "G.O.R.A." },
+  { id: 26900, title: "Eşkıya" },
+  { id: 265169, title: "Kış Uykusu" },
 ] as const;
 
 export const ONBOARDING_MIN_RATINGS = 5;

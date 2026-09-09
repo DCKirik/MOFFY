@@ -9,6 +9,13 @@ export interface TmdbMovieSummary {
   overview: string;
   popularity: number;
   genre_ids: number[];
+  original_language?: string;
+}
+
+export interface TmdbSpokenLanguage {
+  iso_639_1: string;
+  name: string;
+  english_name: string;
 }
 
 export interface TmdbGenre {
@@ -59,4 +66,6 @@ export interface TmdbMovieDetail {
   "watch/providers": {
     results: Record<string, TmdbWatchProviderRegion>;
   };
+  original_language: string;
+  spoken_languages: TmdbSpokenLanguage[];
 }

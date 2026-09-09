@@ -17,7 +17,13 @@ export async function rateOnboardingMovie(movieId: number, rating: number) {
   if (error) throw new Error(error.message);
 }
 
-export async function completeOnboarding() {
+export interface OnboardingPreferences {
+  preferredGenres: number[];
+  contentOrigin: "domestic" | "foreign" | "both";
+  watchLanguage: "turkish" | "subtitled" | "both";
+}
+
+export async function completeOnboarding(prefs: OnboardingPreferences) {
   const supabase = await createClient();
   const {
     data: { user },
@@ -26,7 +32,12 @@ export async function completeOnboarding() {
 
   const { error } = await supabase
     .from("profiles")
-    .update({ onboarding_completed: true })
+    .update({
+      onboarding_completed: true,
+      preferred_genres: prefs.preferredGenres,
+      content_origin: prefs.contentOrigin,
+      watch_language: prefs.watchLanguage,
+    })
     .eq("id", user.id);
 
   if (error) throw new Error(error.message);

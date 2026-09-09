@@ -35,6 +35,8 @@ export async function cacheMovie(detail: TmdbMovieDetail): Promise<void> {
       overview: detail.overview,
       external_rating: detail.vote_average,
       popularity: detail.popularity,
+      original_language: detail.original_language ?? null,
+      spoken_languages: (detail.spoken_languages ?? []) as unknown as Json,
       cached_at: new Date().toISOString(),
     });
 

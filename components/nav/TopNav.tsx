@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { signOut } from "@/app/(auth)/actions";
 
@@ -15,9 +16,9 @@ export function TopNav() {
   return (
     <header className="sticky top-0 z-10 hidden border-b border-white/10 bg-brand-bg/90 backdrop-blur md:block">
       <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-3">
-        <span className="font-display text-xl tracking-tight text-brand-orange">
-          MOFFY
-        </span>
+        <Link href="/" className="shrink-0">
+          <Image src="/moffy-logo.png" alt="Moffy" width={57} height={44} priority className="h-11 w-auto" />
+        </Link>
         <nav className="flex items-center gap-6">
           {LINKS.map((link) => (
             <Link

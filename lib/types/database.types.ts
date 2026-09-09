@@ -19,6 +19,9 @@ export type Database = {
           display_name: string | null;
           avatar_url: string | null;
           onboarding_completed: boolean;
+          preferred_genres: number[];
+          content_origin: "domestic" | "foreign" | "both";
+          watch_language: "turkish" | "subtitled" | "both";
           created_at: string;
           updated_at: string;
         };
@@ -28,6 +31,9 @@ export type Database = {
           display_name?: string | null;
           avatar_url?: string | null;
           onboarding_completed?: boolean;
+          preferred_genres?: number[];
+          content_origin?: "domestic" | "foreign" | "both";
+          watch_language?: "turkish" | "subtitled" | "both";
           created_at?: string;
           updated_at?: string;
         };
@@ -48,6 +54,8 @@ export type Database = {
           overview: string | null;
           external_rating: number | null;
           popularity: number | null;
+          original_language: string | null;
+          spoken_languages: Json;
           cached_at: string;
         };
         Insert: {
@@ -63,6 +71,8 @@ export type Database = {
           overview?: string | null;
           external_rating?: number | null;
           popularity?: number | null;
+          original_language?: string | null;
+          spoken_languages?: Json;
           cached_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["movies_cache"]["Insert"]>;

@@ -6,6 +6,7 @@ export interface MatchableMovie {
   castNames: string[];
   externalRating: number | null;
   popularity: number | null;
+  originalLanguage: string | null;
 }
 
 // Personal Match = Genre + Director + Actor + Similar-movie + Community
@@ -19,6 +20,10 @@ export interface MatchableMovie {
 const CONTENT_WEIGHTS = { genre: 0.55, director: 0.25, actor: 0.2 } as const;
 const FINAL_WEIGHTS = { content: 0.55, community: 0.25, popularity: 0.2 } as const;
 const POPULARITY_SCALE = Math.log10(1000);
+// Small nudge, not a filter — a "domestic" preference shouldn't hide every
+// foreign film, just tip close calls toward Turkish titles (and the
+// reverse for "foreign"). "both" (the default) applies no adjustment.
+const ORIGIN_BOOST = 0.06;
 
 function averageOrZero(values: number[]): number {
   return values.length ? values.reduce((a, b) => a + b, 0) / values.length : 0;
@@ -46,10 +51,14 @@ export function computeMoffyMatch(profile: TasteProfile, movie: MatchableMovie):
       ? Math.min(Math.log10(movie.popularity + 1) / POPULARITY_SCALE, 1)
       : 0;
 
-  const match01 =
+  let match01 =
     FINAL_WEIGHTS.content * ((contentScore + 1) / 2) +
     FINAL_WEIGHTS.community * communityQuality +
     FINAL_WEIGHTS.popularity * popularitySignal;
+
+  const isTurkish = movie.originalLanguage === "tr";
+  if (profile.contentOrigin === "domestic" && isTurkish) match01 += ORIGIN_BOOST;
+  if (profile.contentOrigin === "foreign" && isTurkish) match01 -= ORIGIN_BOOST;
 
   return Math.round(Math.min(Math.max(match01, 0), 1) * 100);
 }

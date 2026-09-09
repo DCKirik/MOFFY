@@ -80,7 +80,7 @@ export default async function MovieDetailPage({
               alt={detail.title}
               width={342}
               height={513}
-              className="rounded-xl2 object-cover shadow-md"
+              className="rounded-xl2 object-cover transition-shadow duration-300 shadow-[0_0_24px_3px_rgba(245,183,34,0.14)] hover:shadow-[0_0_40px_10px_rgba(245,183,34,0.32)]"
             />
           ) : (
             <div className="flex aspect-[2/3] items-center justify-center rounded-xl2 bg-brand-surface p-4 text-center text-sm">

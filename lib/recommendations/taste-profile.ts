@@ -6,6 +6,7 @@ export interface TasteProfile {
   directorScores: Map<string, number>;
   actorScores: Map<string, number>;
   ratedMovieIds: Set<number>;
+  contentOrigin: "domestic" | "foreign" | "both";
 }
 
 const EMPTY_PROFILE: TasteProfile = {
@@ -13,7 +14,15 @@ const EMPTY_PROFILE: TasteProfile = {
   directorScores: new Map(),
   actorScores: new Map(),
   ratedMovieIds: new Set(),
+  contentOrigin: "both",
 };
+
+// Onboarding lets a user explicitly pick genres they like, in addition to
+// whatever the star ratings imply — mainly so a brand-new account with
+// only 5 ratings still gets a reasonable cold-start push toward genres it
+// has no rating evidence for yet (spec §3: cold-start reduction). Kept
+// well below a real rating's effect (which can reach ±1).
+const EXPLICIT_GENRE_BONUS = 0.12;
 
 // 1..5 stars -> -1..1, centered so a 3-star rating reads as neutral.
 function normalizeRating(rating: number): number {
@@ -32,13 +41,19 @@ export async function computeTasteProfile(
   supabase: SupabaseClient<Database>,
   userId: string,
 ): Promise<TasteProfile> {
-  const { data: ratings } = await supabase
-    .from("ratings")
-    .select("movie_id, rating")
-    .eq("user_id", userId);
+  const [{ data: ratings }, { data: profile }] = await Promise.all([
+    supabase.from("ratings").select("movie_id, rating").eq("user_id", userId),
+    supabase.from("profiles").select("preferred_genres, content_origin").eq("id", userId).maybeSingle(),
+  ]);
+
+  const contentOrigin = profile?.content_origin ?? "both";
+  const preferredGenres = profile?.preferred_genres ?? [];
 
   const ratedMovieIds = new Set((ratings ?? []).map((r) => r.movie_id));
-  if (ratedMovieIds.size === 0) return EMPTY_PROFILE;
+  if (ratedMovieIds.size === 0) {
+    const genreScores = new Map(preferredGenres.map((id) => [id, EXPLICIT_GENRE_BONUS]));
+    return { ...EMPTY_PROFILE, genreScores, contentOrigin };
+  }
 
   const { data: movies } = await supabase
     .from("movies_cache")
@@ -83,6 +98,9 @@ export async function computeTasteProfile(
   const genreScores = new Map(
     Array.from(genreSums.entries()).map(([id, v]) => [id, average(v.sum, v.count)]),
   );
+  for (const id of preferredGenres) {
+    genreScores.set(id, Math.min((genreScores.get(id) ?? 0) + EXPLICIT_GENRE_BONUS, 1));
+  }
   const directorScores = new Map(
     Array.from(directorSums.entries()).map(([name, v]) => [name, average(v.sum, v.count)]),
   );
@@ -90,5 +108,5 @@ export async function computeTasteProfile(
     Array.from(actorSums.entries()).map(([name, v]) => [name, average(v.sum, v.count)]),
   );
 
-  return { genreScores, directorScores, actorScores, ratedMovieIds };
+  return { genreScores, directorScores, actorScores, ratedMovieIds, contentOrigin };
 }

@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import Image from "next/image";
 import Link from "next/link";
 import { ReactNode } from "react";
 
@@ -21,7 +22,8 @@ export function AuthForm({
   return (
     <div className="flex min-h-screen items-center justify-center px-4">
       <Card className="w-full max-w-sm">
-        <h1 className="mb-6 font-display text-2xl text-brand-ink">{title}</h1>
+        <Image src="/moffy-logo.png" alt="Moffy" width={368} height={285} priority className="mx-auto mb-4 h-24 w-auto" />
+        <h1 className="mb-6 text-center font-display text-2xl text-brand-ink">{title}</h1>
         {notice && (
           <p className="mb-4 rounded-lg bg-brand-yellow/15 px-3 py-2 text-sm text-brand-yellow">
             {notice}

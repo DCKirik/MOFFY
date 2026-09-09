@@ -12,6 +12,7 @@ export function summaryToMatchable(movie: TmdbMovieSummary): MatchableMovie {
     castNames: [],
     externalRating: movie.vote_average,
     popularity: movie.popularity,
+    originalLanguage: movie.original_language ?? null,
   };
 }
 
@@ -22,5 +23,6 @@ export function detailToMatchable(detail: TmdbMovieDetail): MatchableMovie {
     castNames: (detail.credits?.cast ?? []).slice(0, 10).map((c) => c.name),
     externalRating: detail.vote_average,
     popularity: detail.popularity,
+    originalLanguage: detail.original_language ?? null,
   };
 }
