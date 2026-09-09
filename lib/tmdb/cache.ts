@@ -107,12 +107,13 @@ export async function getMoviePool(
   supabase: SupabaseClient<Database>,
   limit = 1000,
 ): Promise<TmdbMovieSummary[]> {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("movies_cache")
     .select(POOL_COLUMNS)
     .order("popularity", { ascending: false })
     .limit(limit);
 
+  if (error) console.error("getMoviePool failed:", error.message);
   return (data ?? []).map(rowToSummary);
 }
 
@@ -131,7 +132,8 @@ export async function getMoviePoolPage(
   if (genreId != null) {
     query = query.overlaps("genre_ids", [genreId]);
   }
-  const { data } = await query.range(from, to);
+  const { data, error } = await query.range(from, to);
+  if (error) console.error("getMoviePoolPage failed:", error.message);
   return (data ?? []).map(rowToSummary);
 }
 
@@ -162,7 +164,7 @@ export async function getReelCandidatePool(
   excludeIds: Set<number>,
   limit = 600,
 ): Promise<ReelCandidate[]> {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("movies_cache")
     .select(
       "tmdb_id, title, poster_path, backdrop_path, trailer_key, overview, release_year, external_rating, genre_ids, director, cast_members, original_language, popularity",
@@ -171,6 +173,7 @@ export async function getReelCandidatePool(
     .order("popularity", { ascending: false })
     .limit(limit);
 
+  if (error) console.error("getReelCandidatePool failed:", error.message);
   return (data ?? [])
     .filter((row) => row.trailer_key && !excludeIds.has(row.tmdb_id))
     .map((row) => ({
@@ -212,6 +215,7 @@ export async function searchMoviePool(
   if (genreId != null) {
     dbQuery = dbQuery.overlaps("genre_ids", [genreId]);
   }
-  const { data } = await dbQuery.range(from, to);
+  const { data, error } = await dbQuery.range(from, to);
+  if (error) console.error("searchMoviePool failed:", error.message);
   return (data ?? []).map(rowToSummary);
 }
