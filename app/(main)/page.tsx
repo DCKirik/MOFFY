@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { getPopularMovies, getMovieDetail } from "@/lib/tmdb/client";
-import { cacheMovie } from "@/lib/tmdb/cache";
+import { cacheMovie, getMoviePool } from "@/lib/tmdb/cache";
 import { tmdbImage } from "@/lib/tmdb/image";
 import { createClient } from "@/lib/supabase/server";
 import { computeTasteProfile } from "@/lib/recommendations/taste-profile";
@@ -19,12 +19,13 @@ export default async function HomePage() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const [popular, profile] = await Promise.all([
+  const [popular, pool, profile] = await Promise.all([
     getPopularMovies(),
+    getMoviePool(supabase),
     computeTasteProfile(supabase, user.id),
   ]);
 
-  const scoredCandidates = popular
+  const scoredCandidates = pool
     .filter((m) => !profile.ratedMovieIds.has(m.id))
     .map((movie) => ({ movie, match: computeMoffyMatch(profile, summaryToMatchable(movie)) }))
     .sort((a, b) => b.match - a.match);

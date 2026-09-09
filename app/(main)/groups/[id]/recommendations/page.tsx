@@ -1,6 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { getPopularMovies } from "@/lib/tmdb/client";
+import { getMoviePool } from "@/lib/tmdb/cache";
 import { computeTasteProfile } from "@/lib/recommendations/taste-profile";
 import { rankCandidatesForGroup } from "@/lib/recommendations/rank-for-group";
 import { TMDB_GENRES } from "@/lib/tmdb/genres";
@@ -57,7 +57,7 @@ export default async function GroupRecommendationsPage({
   const nobodyWatched = sp.nobodyWatched === "1";
 
   const [candidates, tasteProfiles] = await Promise.all([
-    getPopularMovies(),
+    getMoviePool(supabase),
     Promise.all(memberIds.map((uid) => computeTasteProfile(supabase, uid))),
   ]);
 

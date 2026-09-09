@@ -1,37 +1,66 @@
-import { searchMovies } from "@/lib/tmdb/client";
-import { MovieCard } from "@/components/movie/MovieCard";
+import Link from "next/link";
+import { createClient } from "@/lib/supabase/server";
+import { searchMoviePool } from "@/lib/tmdb/cache";
+import { TMDB_GENRES } from "@/lib/tmdb/genres";
 import { Card } from "@/components/ui/Card";
+import { InfiniteMovieGrid } from "@/components/movie/InfiniteMovieGrid";
+import { SearchBar } from "@/components/movie/SearchBar";
+import { loadMoreSearchMovies } from "./actions";
 
 export default async function SearchPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string }>;
+  searchParams: Promise<{ q?: string; genre?: string }>;
 }) {
-  const { q } = await searchParams;
+  const { q, genre } = await searchParams;
   const query = q?.trim() ?? "";
-  const results = query ? await searchMovies(query) : [];
+  const genreId = genre ? Number(genre) : undefined;
+
+  const supabase = await createClient();
+  const results = query ? await searchMoviePool(supabase, query, 1, 40, genreId) : [];
+  const initialMovies = results.map((m) => ({
+    id: m.id,
+    title: m.title,
+    posterPath: m.poster_path,
+    year: m.release_date?.slice(0, 4),
+    externalRating: m.vote_average,
+  }));
 
   return (
     <div className="flex flex-col gap-6">
-      <form className="flex gap-2">
-        <input
-          name="q"
-          type="search"
-          defaultValue={query}
-          placeholder="Search for a movie..."
-          className="w-full rounded-xl2 border border-white/15 bg-brand-surface px-4 py-2.5 text-brand-ink outline-none focus:border-brand-orange"
-        />
-        <button
-          type="submit"
-          className="shrink-0 cursor-pointer rounded-xl2 bg-brand-yellow px-5 py-2.5 font-semibold text-brand-bg transition-colors hover:bg-brand-yellow-dark"
-        >
-          Search
-        </button>
-      </form>
+      <SearchBar initialQuery={query} />
+
+      {query && (
+        <div className="flex flex-wrap gap-2">
+          <Link
+            href={`/search?q=${encodeURIComponent(query)}`}
+            className={`cursor-pointer rounded-full border px-3 py-1.5 text-sm font-medium transition-colors ${
+              !genreId
+                ? "border-brand-orange bg-brand-orange text-white"
+                : "border-white/15 bg-brand-surface-2 text-brand-ink/80 hover:border-brand-orange/40"
+            }`}
+          >
+            All
+          </Link>
+          {TMDB_GENRES.map((g) => (
+            <Link
+              key={g.id}
+              href={`/search?q=${encodeURIComponent(query)}&genre=${g.id}`}
+              className={`cursor-pointer rounded-full border px-3 py-1.5 text-sm font-medium transition-colors ${
+                genreId === g.id
+                  ? "border-brand-orange bg-brand-orange text-white"
+                  : "border-white/15 bg-brand-surface-2 text-brand-ink/80 hover:border-brand-orange/40"
+              }`}
+            >
+              {g.name}
+            </Link>
+          ))}
+        </div>
+      )}
 
       {!query && (
         <Card>
-          <p className="text-brand-ink/60">Search for a title to get started.</p>
+          <p className="text-brand-ink/60">Search for a title, studio, or keyword to get started.</p>
         </Card>
       )}
 
@@ -42,18 +71,11 @@ export default async function SearchPage({
       )}
 
       {results.length > 0 && (
-        <div className="flex flex-wrap gap-4">
-          {results.map((movie) => (
-            <MovieCard
-              key={movie.id}
-              id={movie.id}
-              title={movie.title}
-              posterPath={movie.poster_path}
-              year={movie.release_date?.slice(0, 4)}
-              externalRating={movie.vote_average}
-            />
-          ))}
-        </div>
+        <InfiniteMovieGrid
+          key={`${query}-${genreId ?? "all"}`}
+          initialMovies={initialMovies}
+          loadMore={loadMoreSearchMovies.bind(null, query, genreId)}
+        />
       )}
     </div>
   );

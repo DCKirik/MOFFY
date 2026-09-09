@@ -61,6 +61,21 @@ export default async function NewPathwayPage({
           </label>
 
           <div>
+            <p className="mb-2 text-sm font-semibold text-brand-ink/70">Include genres</p>
+            <p className="mb-2 text-xs text-brand-ink/50">
+              Pick a few and the pathway mixes movies across them — a film doesn&apos;t need to match all of them.
+            </p>
+            <div className="flex flex-wrap gap-x-4 gap-y-2">
+              {TMDB_GENRES.map((g) => (
+                <label key={g.id} className="flex items-center gap-1.5 text-sm text-brand-ink/80">
+                  <input type="checkbox" name="includeGenres" value={g.id} className="accent-brand-orange" />
+                  {g.name}
+                </label>
+              ))}
+            </div>
+          </div>
+
+          <div>
             <p className="mb-2 text-sm font-semibold text-brand-ink/70">Exclude genres</p>
             <div className="flex flex-wrap gap-x-4 gap-y-2">
               {TMDB_GENRES.map((g) => (

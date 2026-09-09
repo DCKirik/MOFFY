@@ -1,6 +1,10 @@
-// One-off bulk seed: populate movies_cache with ~4000 titles, guaranteeing
-// strong Turkish-comedy / Turkish-catalog coverage for the TR market, plus
-// original_language + spoken_languages on every row.
+// Bulk seed: populate movies_cache with ~50,000 titles — strong Turkish
+// coverage (comedy/drama/romance/action prioritized first, so it survives
+// the final trim), broad global genre/decade/language coverage otherwise,
+// each with real TMDB keywords + production companies so franchise/studio
+// search (e.g. "marvel", "mcu") can match titles that don't contain that
+// word themselves. Re-run anytime to top up/refresh — every write is an
+// upsert keyed on tmdb_id.
 import { createClient } from "@supabase/supabase-js";
 
 const TMDB_KEY = process.env.TMDB_API_KEY;
@@ -12,7 +16,7 @@ if (!TMDB_KEY || !SUPABASE_URL || !SERVICE_KEY) {
 }
 
 const TMDB_BASE = "https://api.themoviedb.org/3";
-const TARGET_TOTAL = 4300; // buffer above 4000 — some detail fetches will fail/dedupe
+const TARGET_TOTAL = 52000; // buffer above 50k — some detail fetches will fail/dedupe
 const admin = createClient(SUPABASE_URL, SERVICE_KEY);
 
 function sleep(ms) {
@@ -77,23 +81,28 @@ async function collectIds() {
   console.log("=== Collecting candidate movie ids ===");
 
   // --- Turkish coverage first (guaranteed to survive the trim) ---
-  await discoverBucket("TR comedy · popularity", { with_original_language: "tr", with_genres: 35, sort_by: "popularity.desc" }, 20, true);
-  await discoverBucket("TR comedy · vote_count", { with_original_language: "tr", with_genres: 35, sort_by: "vote_count.desc" }, 10, true);
-  await discoverBucket("TR drama · popularity", { with_original_language: "tr", with_genres: 18, sort_by: "popularity.desc" }, 12, true);
-  await discoverBucket("TR romance · popularity", { with_original_language: "tr", with_genres: 10749, sort_by: "popularity.desc" }, 8, true);
-  await discoverBucket("TR action/thriller · popularity", { with_original_language: "tr", with_genres: "28,53", sort_by: "popularity.desc" }, 8, true);
-  await discoverBucket("TR general · popularity", { with_original_language: "tr", sort_by: "popularity.desc" }, 20, true);
-  await discoverBucket("TR general · vote_count", { with_original_language: "tr", sort_by: "vote_count.desc" }, 10, true);
+  await discoverBucket("TR comedy · popularity", { with_original_language: "tr", with_genres: 35, sort_by: "popularity.desc" }, 40, true);
+  await discoverBucket("TR comedy · vote_count", { with_original_language: "tr", with_genres: 35, sort_by: "vote_count.desc" }, 25, true);
+  await discoverBucket("TR drama · popularity", { with_original_language: "tr", with_genres: 18, sort_by: "popularity.desc" }, 30, true);
+  await discoverBucket("TR romance · popularity", { with_original_language: "tr", with_genres: 10749, sort_by: "popularity.desc" }, 20, true);
+  await discoverBucket("TR action/thriller · popularity", { with_original_language: "tr", with_genres: "28,53", sort_by: "popularity.desc" }, 20, true);
+  await discoverBucket("TR horror/fantasy · popularity", { with_original_language: "tr", with_genres: "27,14", sort_by: "popularity.desc" }, 15, true);
+  await discoverBucket("TR general · popularity", { with_original_language: "tr", sort_by: "popularity.desc" }, 50, true);
+  await discoverBucket("TR general · vote_count", { with_original_language: "tr", sort_by: "vote_count.desc" }, 30, true);
+  await discoverBucket("TR general · vote_average", { with_original_language: "tr", sort_by: "vote_average.desc", "vote_count.gte": 5 }, 20, true);
 
   console.log(`--- Turkish bucket done: ${trSet.size} unique TR ids ---`);
 
   // --- Global coverage (popular, top-rated, then genre-diverse passes) ---
-  await discoverBucket("Global · popularity", { sort_by: "popularity.desc" }, 60);
-  await discoverBucket("Global · top rated", { sort_by: "vote_average.desc", "vote_count.gte": 500 }, 50);
-  await discoverBucket("Global · vote_count", { sort_by: "vote_count.desc" }, 40);
+  await discoverBucket("Global · popularity", { sort_by: "popularity.desc" }, 250);
+  await discoverBucket("Global · top rated", { sort_by: "vote_average.desc", "vote_count.gte": 300 }, 200);
+  await discoverBucket("Global · vote_count", { sort_by: "vote_count.desc" }, 150);
 
   const diverseGenres = [
+    ["Action", 28],
     ["Animation", 16],
+    ["Comedy", 35],
+    ["Drama", 18],
     ["Family", 10751],
     ["Horror", 27],
     ["Science Fiction", 878],
@@ -105,22 +114,34 @@ async function collectIds() {
     ["Mystery", 9648],
     ["Music", 10402],
     ["Western", 37],
+    ["Thriller", 53],
+    ["History", 36],
+    ["Adventure", 12],
   ];
   for (const [name, id] of diverseGenres) {
     if (idOrder.length >= TARGET_TOTAL) break;
-    await discoverBucket(`Global · ${name}`, { with_genres: id, sort_by: "popularity.desc" }, 20);
+    await discoverBucket(`Global · ${name} · popularity`, { with_genres: id, sort_by: "popularity.desc" }, 80);
+    if (idOrder.length >= TARGET_TOTAL) break;
+    await discoverBucket(`Global · ${name} · vote_count`, { with_genres: id, sort_by: "vote_count.desc", "vote_count.gte": 10 }, 40);
   }
 
   // Decade passes surface long-tail catalog titles that pure popularity
   // sorting never reaches (older/classic films with low raw popularity).
   const decades = [
+    [1930, 1949],
+    [1950, 1959],
+    [1960, 1969],
     [1970, 1979],
     [1980, 1989],
     [1990, 1999],
-    [2000, 2009],
-    [2010, 2015],
-    [2016, 2020],
-    [2021, 2026],
+    [2000, 2004],
+    [2005, 2009],
+    [2010, 2013],
+    [2014, 2016],
+    [2017, 2019],
+    [2020, 2022],
+    [2023, 2024],
+    [2025, 2026],
   ];
   for (const [from, to] of decades) {
     if (idOrder.length >= TARGET_TOTAL) break;
@@ -130,9 +151,19 @@ async function collectIds() {
         "primary_release_date.gte": `${from}-01-01`,
         "primary_release_date.lte": `${to}-12-31`,
         sort_by: "vote_count.desc",
+        "vote_count.gte": 5,
       },
-      15,
+      60,
     );
+  }
+
+  // Non-English, non-Turkish languages — broadens beyond a US+TR-only
+  // catalog (Spanish, French, German, Japanese, Korean, Hindi, Italian,
+  // Chinese, Russian, Portuguese).
+  const languages = ["es", "fr", "de", "ja", "ko", "hi", "it", "zh", "ru", "pt"];
+  for (const lang of languages) {
+    if (idOrder.length >= TARGET_TOTAL) break;
+    await discoverBucket(`Global · lang=${lang}`, { with_original_language: lang, sort_by: "popularity.desc" }, 40);
   }
 
   console.log(`=== Collected ${idOrder.length} unique ids (${trSet.size} Turkish) ===`);
@@ -176,12 +207,18 @@ async function fetchAndUpsertAll(ids) {
   }
 
   const { ok, fail } = await pool(ids, 16, async (id) => {
-    const detail = await tmdb(`/movie/${id}`, { append_to_response: "credits" });
+    const detail = await tmdb(`/movie/${id}`, { append_to_response: "credits,keywords" });
     const director = detail.credits?.crew?.find((c) => c.job === "Director")?.name ?? null;
     const castMembers = (detail.credits?.cast ?? []).slice(0, 10).map((c) => ({
       name: c.name,
       character: c.character,
     }));
+    const genres = detail.genres ?? [];
+    const keywords = detail.keywords?.keywords ?? [];
+    const companies = detail.production_companies ?? [];
+    const searchBlob = [detail.title, ...keywords.map((k) => k.name), ...companies.map((c) => c.name)]
+      .join(" ")
+      .toLowerCase();
     buffer.push({
       tmdb_id: detail.id,
       title: detail.title,
@@ -189,7 +226,8 @@ async function fetchAndUpsertAll(ids) {
       backdrop_path: detail.backdrop_path,
       release_year: detail.release_date ? Number(detail.release_date.slice(0, 4)) : null,
       runtime: detail.runtime,
-      genres: detail.genres ?? [],
+      genres,
+      genre_ids: genres.map((g) => g.id),
       director,
       cast_members: castMembers,
       overview: detail.overview,
@@ -197,6 +235,9 @@ async function fetchAndUpsertAll(ids) {
       popularity: detail.popularity,
       original_language: detail.original_language ?? null,
       spoken_languages: detail.spoken_languages ?? [],
+      keywords,
+      production_companies: companies,
+      search_blob: searchBlob,
       cached_at: new Date().toISOString(),
     });
     if (buffer.length >= BATCH) await flush();

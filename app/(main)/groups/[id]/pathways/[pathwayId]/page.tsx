@@ -101,10 +101,14 @@ export default async function PathwayDetailPage({
               const poster = movie ? tmdbImage(movie.poster_path, "w200") : null;
 
               return (
-                <div key={pm.movie_id} className="flex shrink-0 items-center">
+                <div
+                  key={pm.movie_id}
+                  className="flex shrink-0 items-center opacity-0 [animation-fill-mode:backwards]"
+                  style={{ animation: "stagger-in 0.45s ease-out backwards", animationDelay: `${i * 45}ms` }}
+                >
                   {i > 0 && (
                     <div
-                      className={`h-0.5 w-6 shrink-0 ${
+                      className={`h-0.5 w-6 shrink-0 transition-colors duration-500 ${
                         watchedByMovie.get(pathwayMovies[i - 1].movie_id)?.size ===
                           memberIds.length && memberIds.length > 0
                           ? "bg-brand-orange"
@@ -115,8 +119,10 @@ export default async function PathwayDetailPage({
                   <div className="flex w-20 flex-col items-center gap-1.5">
                     <Link
                       href={`/movie/${pm.movie_id}`}
-                      className={`relative block h-16 w-16 overflow-hidden rounded-full border-4 transition-colors ${
-                        groupComplete ? "border-brand-orange" : "border-white/15"
+                      className={`relative block h-16 w-16 overflow-hidden rounded-full border-4 transition-all duration-300 hover:scale-105 ${
+                        groupComplete
+                          ? "border-brand-orange shadow-[0_0_20px_4px_rgba(225,29,72,0.35)]"
+                          : "border-white/15"
                       }`}
                     >
                       {poster ? (
@@ -159,13 +165,17 @@ export default async function PathwayDetailPage({
           <div>
             <h2 className="mb-3 text-sm font-semibold text-brand-ink/70">Progress</h2>
             <div className="flex flex-col gap-3">
-              {memberIds.map((id) => {
+              {memberIds.map((id, i) => {
                 const p = profileById.get(id);
                 if (!p) return null;
                 const watched = watchedCountByMember.get(id) ?? 0;
                 const pct = total > 0 ? Math.round((watched / total) * 100) : 0;
                 return (
-                  <div key={id} className="flex items-center gap-3">
+                  <div
+                    key={id}
+                    className="flex items-center gap-3 opacity-0"
+                    style={{ animation: "stagger-in 0.4s ease-out backwards", animationDelay: `${i * 60}ms` }}
+                  >
                     <Avatar url={p.avatar_url} name={p.display_name ?? p.username} size={32} />
                     <div className="flex-1">
                       <div className="flex justify-between text-xs text-brand-ink/60">
@@ -176,7 +186,7 @@ export default async function PathwayDetailPage({
                       </div>
                       <div className="mt-1 h-2 rounded-full bg-white/10">
                         <div
-                          className="h-2 rounded-full bg-brand-orange transition-all duration-500"
+                          className="h-2 rounded-full bg-brand-orange shadow-[0_0_8px_1px_rgba(225,29,72,0.5)] transition-[width] duration-700 ease-out"
                           style={{ width: `${pct}%` }}
                         />
                       </div>

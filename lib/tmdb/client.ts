@@ -21,11 +21,11 @@ async function tmdbFetch<T>(
   return res.json();
 }
 
-export function searchMovies(query: string): Promise<TmdbMovieSummary[]> {
+export function searchMovies(query: string, page = 1): Promise<TmdbMovieSummary[]> {
   if (!query.trim()) return Promise.resolve([]);
   return tmdbFetch<{ results: TmdbMovieSummary[] }>(
     "/search/movie",
-    { query },
+    { query, page: String(page) },
     60 * 10,
   ).then((data) => data.results);
 }

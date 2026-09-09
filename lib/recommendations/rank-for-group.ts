@@ -39,3 +39,51 @@ export function rankCandidatesForGroup(
     })
     .sort((a, b) => b.groupScore - a.groupScore);
 }
+
+// Spreads a pathway's picks across the requested genres instead of
+// requiring every single movie to match all of them — asking for both
+// Horror and Action shouldn't mean "only horror-action hybrids," it
+// should mean "mix of horror and action movies" (round-robins the
+// highest-ranked still-unpicked match per genre; leftover slots, or all
+// of them when no genres are given, fall back to the overall ranking).
+export function pickDiverseByGenre(
+  ranked: RankedCandidate[],
+  genreIds: number[],
+  count: number,
+): RankedCandidate[] {
+  if (genreIds.length === 0) return ranked.slice(0, count);
+
+  const picked: RankedCandidate[] = [];
+  const pickedIds = new Set<number>();
+  const byGenre = new Map(
+    genreIds.map((id) => [id, ranked.filter((c) => c.movie.genre_ids.includes(id))]),
+  );
+
+  let genreIndex = 0;
+  while (picked.length < count) {
+    const before = picked.length;
+    for (let i = 0; i < genreIds.length && picked.length < count; i++) {
+      const genreId = genreIds[(genreIndex + i) % genreIds.length];
+      const candidates = byGenre.get(genreId) ?? [];
+      const next = candidates.find((c) => !pickedIds.has(c.movie.id));
+      if (next) {
+        picked.push(next);
+        pickedIds.add(next.movie.id);
+      }
+    }
+    genreIndex += genreIds.length;
+    if (picked.length === before) break; // every genre bucket exhausted
+  }
+
+  if (picked.length < count) {
+    for (const c of ranked) {
+      if (picked.length >= count) break;
+      if (!pickedIds.has(c.movie.id)) {
+        picked.push(c);
+        pickedIds.add(c.movie.id);
+      }
+    }
+  }
+
+  return picked.sort((a, b) => b.groupScore - a.groupScore);
+}

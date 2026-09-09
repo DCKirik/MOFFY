@@ -1,10 +1,10 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { getPopularMovies, getMovieDetail } from "@/lib/tmdb/client";
-import { cacheMovie } from "@/lib/tmdb/cache";
+import { getMovieDetail } from "@/lib/tmdb/client";
+import { cacheMovie, getMoviePool } from "@/lib/tmdb/cache";
 import { computeTasteProfile } from "@/lib/recommendations/taste-profile";
-import { rankCandidatesForGroup } from "@/lib/recommendations/rank-for-group";
+import { rankCandidatesForGroup, pickDiverseByGenre } from "@/lib/recommendations/rank-for-group";
 import { redirect } from "next/navigation";
 
 export async function createPathway(groupId: string, formData: FormData) {
@@ -24,6 +24,7 @@ export async function createPathway(groupId: string, formData: FormData) {
 
   const count = Math.min(Math.max(Number(formData.get("count") ?? 10) || 10, 3), 20);
   const excludeGenreIds = new Set(formData.getAll("excludeGenres").map((v) => Number(v)));
+  const includeGenreIds = formData.getAll("includeGenres").map((v) => Number(v));
   const minRating = formData.get("minRating") ? Number(formData.get("minRating")) : 0;
 
   const { data: memberRows } = await supabase
@@ -33,16 +34,17 @@ export async function createPathway(groupId: string, formData: FormData) {
   const memberIds = (memberRows ?? []).map((m) => m.user_id);
 
   const [candidates, tasteProfiles] = await Promise.all([
-    getPopularMovies(),
+    getMoviePool(supabase),
     Promise.all(memberIds.map((uid) => computeTasteProfile(supabase, uid))),
   ]);
 
-  const ranked = rankCandidatesForGroup(candidates, tasteProfiles, {
+  const scored = rankCandidatesForGroup(candidates, tasteProfiles, {
     excludeGenreIds,
     minRating,
     extreme: false,
     excludeMovieIds: new Set(),
-  }).slice(0, count);
+  });
+  const ranked = pickDiverseByGenre(scored, includeGenreIds, count);
 
   if (ranked.length === 0) {
     redirect(
@@ -56,7 +58,7 @@ export async function createPathway(groupId: string, formData: FormData) {
     group_id: groupId,
     name,
     type,
-    filters_json: { excludeGenreIds: Array.from(excludeGenreIds), minRating },
+    filters_json: { excludeGenreIds: Array.from(excludeGenreIds), includeGenreIds, minRating },
     created_by: user.id,
   });
   if (pathwayError) throw new Error(pathwayError.message);

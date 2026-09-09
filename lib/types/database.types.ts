@@ -49,6 +49,7 @@ export type Database = {
           release_year: number | null;
           runtime: number | null;
           genres: Json;
+          genre_ids: number[];
           director: string | null;
           cast_members: Json;
           overview: string | null;
@@ -56,6 +57,9 @@ export type Database = {
           popularity: number | null;
           original_language: string | null;
           spoken_languages: Json;
+          keywords: Json;
+          production_companies: Json;
+          search_blob: string;
           cached_at: string;
         };
         Insert: {
@@ -66,6 +70,7 @@ export type Database = {
           release_year?: number | null;
           runtime?: number | null;
           genres?: Json;
+          genre_ids?: number[];
           director?: string | null;
           cast_members?: Json;
           overview?: string | null;
@@ -73,6 +78,9 @@ export type Database = {
           popularity?: number | null;
           original_language?: string | null;
           spoken_languages?: Json;
+          keywords?: Json;
+          production_companies?: Json;
+          search_blob?: string;
           cached_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["movies_cache"]["Insert"]>;

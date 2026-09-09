@@ -34,6 +34,16 @@ export interface TmdbCrewMember {
   job: string;
 }
 
+export interface TmdbKeyword {
+  id: number;
+  name: string;
+}
+
+export interface TmdbProductionCompany {
+  id: number;
+  name: string;
+}
+
 export interface TmdbWatchProvider {
   provider_id: number;
   provider_name: string;
@@ -68,4 +78,6 @@ export interface TmdbMovieDetail {
   };
   original_language: string;
   spoken_languages: TmdbSpokenLanguage[];
+  production_companies: TmdbProductionCompany[];
+  keywords?: { keywords: TmdbKeyword[] };
 }
