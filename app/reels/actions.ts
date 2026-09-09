@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { computeTasteProfile } from "@/lib/recommendations/taste-profile";
 import { getReelCandidatePool } from "@/lib/tmdb/cache";
 import { buildReelQueue, type ScoredReel } from "@/lib/recommendations/reels";
+import { getUiLanguage } from "@/lib/i18n/get-language";
 
 export async function swipeMovie(movieId: number, liked: boolean): Promise<void> {
   const supabase = await createClient();
@@ -60,8 +61,11 @@ export async function loadMoreReels(seenIds: number[]): Promise<ScoredReel[]> {
   } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated");
 
-  const profile = await computeTasteProfile(supabase, user.id);
+  const [profile, lang] = await Promise.all([
+    computeTasteProfile(supabase, user.id),
+    getUiLanguage(supabase, user.id),
+  ]);
   const excludeIds = new Set([...profile.ratedMovieIds, ...profile.swipedMovieIds, ...seenIds]);
   const candidates = await getReelCandidatePool(supabase, excludeIds);
-  return buildReelQueue(candidates, profile, 15);
+  return buildReelQueue(candidates, profile, 15, lang);
 }

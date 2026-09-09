@@ -1,9 +1,16 @@
 import type { ReelCandidate } from "@/lib/tmdb/cache";
+import { pickTrailerForLanguage } from "@/lib/tmdb/client";
 import type { TasteProfile } from "./taste-profile";
 import { computeMoffyMatch, type MatchableMovie } from "./moffy-match";
 
 export interface ScoredReel extends ReelCandidate {
   matchPercent: number;
+  // The trailer actually shown, chosen for the viewer's ui_language when
+  // one exists (a distributor's own market-specific YouTube upload, not
+  // a guess) — falls back to trailerKey's default otherwise, with
+  // isDubbed saying honestly which case this is so the UI can say so too.
+  resolvedTrailerKey: string;
+  isDubbed: boolean;
 }
 
 function toMatchable(c: ReelCandidate): MatchableMovie {
@@ -39,11 +46,21 @@ const SCORE_POWER = 2.4; // higher = more aggressively favors top matches
 const EXPLORATION_RATE = 0.18; // fraction of the queue drawn from the exploration slice
 const EXPLORATION_POOL_FRACTION = 0.5; // "lower half by score" = the exploration draw pool
 
-export function buildReelQueue(candidates: ReelCandidate[], profile: TasteProfile, count: number): ScoredReel[] {
-  const scored: ScoredReel[] = candidates.map((c) => ({
-    ...c,
-    matchPercent: computeMoffyMatch(profile, toMatchable(c)),
-  }));
+export function buildReelQueue(
+  candidates: ReelCandidate[],
+  profile: TasteProfile,
+  count: number,
+  uiLanguage: string = "en",
+): ScoredReel[] {
+  const scored: ScoredReel[] = candidates.map((c) => {
+    const picked = pickTrailerForLanguage(c.trailerVideos, uiLanguage);
+    return {
+      ...c,
+      matchPercent: computeMoffyMatch(profile, toMatchable(c)),
+      resolvedTrailerKey: picked?.key ?? c.trailerKey,
+      isDubbed: picked?.isDubbed ?? false,
+    };
+  });
 
   const pool = [...scored];
   const queue: ScoredReel[] = [];

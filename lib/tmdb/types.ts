@@ -51,6 +51,7 @@ export interface TmdbVideo {
   type: string;
   official: boolean;
   published_at: string;
+  iso_639_1: string;
 }
 
 export interface TmdbWatchProvider {

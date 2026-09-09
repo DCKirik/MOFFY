@@ -232,7 +232,15 @@ async function fetchAndUpsertAll(ids) {
   }
 
   const { ok, fail } = await pool(ids, 16, async (id) => {
-    const detail = await tmdb(`/movie/${id}`, { append_to_response: "credits,keywords,videos" });
+    // include_video_language: TMDB's videos data honors the request's
+    // language=en-US (set in tmdb() above) as a FILTER by default, hiding
+    // e.g. a genuine French-market trailer that otherwise shows up fine
+    // when this is passed — confirmed live. "null" is TMDB's literal
+    // string for untagged videos, not JS null.
+    const detail = await tmdb(`/movie/${id}`, {
+      append_to_response: "credits,keywords,videos",
+      include_video_language: "en,tr,fr,null",
+    });
     const director = detail.credits?.crew?.find((c) => c.job === "Director")?.name ?? null;
     const castMembers = (detail.credits?.cast ?? []).slice(0, 10).map((c) => ({
       name: c.name,
@@ -273,6 +281,7 @@ async function fetchAndUpsertAll(ids) {
       keywords,
       production_companies: companies,
       trailer_key: trailerKey,
+      trailer_videos: videos.filter((v) => v.type === "Trailer" || v.type === "Teaser"),
       search_blob: searchBlob,
       cached_at: new Date().toISOString(),
     });

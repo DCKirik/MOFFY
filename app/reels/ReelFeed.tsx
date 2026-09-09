@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { tmdbImage } from "@/lib/tmdb/image";
+import { languageName } from "@/lib/tmdb/languages";
 import type { ScoredReel } from "@/lib/recommendations/reels";
 import { swipeMovie, loadMoreReels, saveMovie, unsaveMovie } from "./actions";
 
@@ -53,12 +54,19 @@ function loadYouTubeApi(): Promise<void> {
   return youtubeApiPromise;
 }
 
-export function ReelFeed({ initialQueue }: { initialQueue: ScoredReel[] }) {
+export function ReelFeed({
+  initialQueue,
+  uiLanguage,
+}: {
+  initialQueue: ScoredReel[];
+  uiLanguage: string;
+}) {
   const [queue, setQueue] = useState(initialQueue);
   const [activeIndex, setActiveIndex] = useState(0);
   const [swiped, setSwiped] = useState<Map<number, boolean>>(new Map());
   const [saved, setSaved] = useState<Set<number>>(new Set());
   const [muted, setMuted] = useState(true);
+  const [captionsOn, setCaptionsOn] = useState(true);
   const [, startTransition] = useTransition();
   const containerRef = useRef<HTMLDivElement>(null);
   const slideRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -182,6 +190,19 @@ export function ReelFeed({ initialQueue }: { initialQueue: ScoredReel[] }) {
       >
         {muted ? "🔇" : "🔊"}
       </button>
+      {uiLanguage !== "en" && (
+        <button
+          type="button"
+          onClick={() => setCaptionsOn((c) => !c)}
+          aria-label={captionsOn ? "Turn off subtitles" : "Turn on subtitles"}
+          aria-pressed={captionsOn}
+          className={`fixed right-4 top-16 z-30 flex h-9 w-9 cursor-pointer items-center justify-center rounded-full text-xs font-bold backdrop-blur-sm transition-colors ${
+            captionsOn ? "bg-brand-orange text-white" : "bg-black/50 text-white hover:bg-black/70"
+          }`}
+        >
+          CC
+        </button>
+      )}
 
       {queue.map((reel, i) => (
         <ReelSlide
@@ -192,6 +213,8 @@ export function ReelFeed({ initialQueue }: { initialQueue: ScoredReel[] }) {
           reel={reel}
           active={i === activeIndex}
           muted={muted}
+          captionsOn={captionsOn}
+          uiLanguage={uiLanguage}
           liked={swiped.get(reel.id)}
           isSaved={saved.has(reel.id)}
           onSwipe={(liked) => handleSwipe(reel.id, liked)}
@@ -207,6 +230,8 @@ function ReelSlide({
   reel,
   active,
   muted,
+  captionsOn,
+  uiLanguage,
   liked,
   isSaved,
   onSwipe,
@@ -217,6 +242,8 @@ function ReelSlide({
   reel: ScoredReel;
   active: boolean;
   muted: boolean;
+  captionsOn: boolean;
+  uiLanguage: string;
   liked: boolean | undefined;
   isSaved: boolean;
   onSwipe: (liked: boolean) => void;
@@ -224,6 +251,7 @@ function ReelSlide({
   onUnplayable: () => void;
   ref: (el: HTMLDivElement | null) => void;
 }) {
+  const wantsSubtitles = captionsOn && uiLanguage !== "en" && !reel.isDubbed;
   const backdrop = tmdbImage(reel.backdropPath ?? reel.posterPath, "w780");
   const playerElId = `yt-player-${reel.id}`;
   const playerRef = useRef<YTPlayer | null>(null);
@@ -236,8 +264,9 @@ function ReelSlide({
     loadYouTubeApi().then(() => {
       if (cancelled || !window.YT) return;
       unplayableTimerRef.current = setTimeout(onUnplayable, UNPLAYABLE_TIMEOUT_MS);
+      const videoId = reel.resolvedTrailerKey;
       playerRef.current = new window.YT.Player(playerElId, {
-        videoId: reel.trailerKey,
+        videoId,
         width: "100%",
         height: "100%",
         playerVars: {
@@ -249,9 +278,17 @@ function ReelSlide({
           modestbranding: 1,
           playsinline: 1,
           loop: 1,
-          playlist: reel.trailerKey,
+          playlist: videoId,
           rel: 0,
           iv_load_policy: 3,
+          // Best-effort: only takes effect if this specific video actually
+          // has a French/Turkish/... caption track authored — YouTube has
+          // no API to check that in advance, so this can silently do
+          // nothing for a given trailer. cc_lang_pref sets which language
+          // to prefer if one exists; cc_load_policy turns captions on by
+          // default rather than requiring a manual click we've disabled
+          // anyway (controls:0).
+          ...(wantsSubtitles ? { cc_load_policy: 1, cc_lang_pref: uiLanguage } : {}),
         },
         events: {
           onError: () => {
@@ -281,7 +318,7 @@ function ReelSlide({
       playerRef.current = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [active, reel.id]);
+  }, [active, reel.id, wantsSubtitles]);
 
   useEffect(() => {
     if (!playerRef.current) return;
@@ -325,6 +362,11 @@ function ReelSlide({
               {Math.round(reel.matchPercent)}% Match
             </span>
           </div>
+          {uiLanguage !== "en" && !reel.isDubbed && (
+            <p className="mb-1 text-xs text-white/60">
+              No {languageName(uiLanguage) ?? uiLanguage} dub for this trailer — playing in original language.
+            </p>
+          )}
           <p className="mb-2 text-sm text-white/70">
             {reel.releaseYear ?? ""}
             {reel.externalRating != null ? ` · ★ ${reel.externalRating.toFixed(1)}` : ""}
