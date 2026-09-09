@@ -63,6 +63,8 @@ export default async function MovieDetailPage({
   const cast = (detail.credits?.cast ?? []).slice(0, 6);
   const trProviders = detail["watch/providers"]?.results?.TR;
   const runtime = formatRuntime(detail.runtime);
+  const studio = detail.production_companies?.[0]?.name;
+  const keywords = (detail.keywords?.keywords ?? []).slice(0, 8);
 
   return (
     <div className="flex flex-col gap-6">
@@ -104,6 +106,7 @@ export default async function MovieDetailPage({
               .join(" · ")}
           </p>
           {director && <p className="text-sm text-brand-ink/60">Directed by {director}</p>}
+          {studio && <p className="text-sm text-brand-ink/60">{studio}</p>}
 
           <div className="flex flex-wrap items-center gap-4 text-sm">
             <span>
@@ -128,6 +131,19 @@ export default async function MovieDetailPage({
             <div>
               <h2 className="text-sm font-semibold text-brand-ink/70">Cast</h2>
               <p className="text-sm text-brand-ink/60">{cast.map((c) => c.name).join(", ")}</p>
+            </div>
+          )}
+
+          {keywords.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {keywords.map((k) => (
+                <span
+                  key={k.id}
+                  className="rounded-full bg-brand-surface-2 px-2.5 py-1 text-xs text-brand-ink/60"
+                >
+                  {k.name}
+                </span>
+              ))}
             </div>
           )}
         </div>

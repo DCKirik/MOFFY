@@ -38,6 +38,6 @@ export function getPopularMovies(): Promise<TmdbMovieSummary[]> {
 
 export function getMovieDetail(id: number): Promise<TmdbMovieDetail> {
   return tmdbFetch<TmdbMovieDetail>(`/movie/${id}`, {
-    append_to_response: "credits,watch/providers",
+    append_to_response: "credits,watch/providers,keywords",
   });
 }
