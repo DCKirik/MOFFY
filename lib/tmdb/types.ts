@@ -44,6 +44,15 @@ export interface TmdbProductionCompany {
   name: string;
 }
 
+export interface TmdbVideo {
+  key: string;
+  name: string;
+  site: string;
+  type: string;
+  official: boolean;
+  published_at: string;
+}
+
 export interface TmdbWatchProvider {
   provider_id: number;
   provider_name: string;
@@ -80,4 +89,5 @@ export interface TmdbMovieDetail {
   spoken_languages: TmdbSpokenLanguage[];
   production_companies: TmdbProductionCompany[];
   keywords?: { keywords: TmdbKeyword[] };
+  videos?: { results: TmdbVideo[] };
 }

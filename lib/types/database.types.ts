@@ -60,6 +60,7 @@ export type Database = {
           keywords: Json;
           production_companies: Json;
           search_blob: string;
+          trailer_key: string | null;
           cached_at: string;
         };
         Insert: {
@@ -81,6 +82,7 @@ export type Database = {
           keywords?: Json;
           production_companies?: Json;
           search_blob?: string;
+          trailer_key?: string | null;
           cached_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["movies_cache"]["Insert"]>;
@@ -232,6 +234,22 @@ export type Database = {
           completed_at?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["pathway_progress"]["Insert"]>;
+        Relationships: [];
+      };
+      reel_swipes: {
+        Row: {
+          user_id: string;
+          movie_id: number;
+          liked: boolean;
+          created_at: string;
+        };
+        Insert: {
+          user_id: string;
+          movie_id: number;
+          liked: boolean;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["reel_swipes"]["Insert"]>;
         Relationships: [];
       };
     };

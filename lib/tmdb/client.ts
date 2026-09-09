@@ -1,5 +1,5 @@
 import "server-only";
-import type { TmdbMovieDetail, TmdbMovieSummary } from "./types";
+import type { TmdbMovieDetail, TmdbMovieSummary, TmdbVideo } from "./types";
 
 const TMDB_BASE = "https://api.themoviedb.org/3";
 
@@ -38,6 +38,19 @@ export function getPopularMovies(): Promise<TmdbMovieSummary[]> {
 
 export function getMovieDetail(id: number): Promise<TmdbMovieDetail> {
   return tmdbFetch<TmdbMovieDetail>(`/movie/${id}`, {
-    append_to_response: "credits,watch/providers,keywords",
+    append_to_response: "credits,watch/providers,keywords,videos",
   });
+}
+
+// Picks the best trailer to show: official YouTube trailers first (newest
+// first), falling back to any YouTube trailer, then any YouTube teaser —
+// TMDB's video list isn't sorted and not every title has an official one.
+export function pickTrailerKey(detail: TmdbMovieDetail): string | null {
+  const byNewest = (a: TmdbVideo, b: TmdbVideo) => b.published_at.localeCompare(a.published_at);
+  const videos = (detail.videos?.results ?? []).filter((v) => v.site === "YouTube").sort(byNewest);
+  const officialTrailers = videos.filter((v) => v.type === "Trailer" && v.official);
+  const anyTrailers = videos.filter((v) => v.type === "Trailer");
+  const teasers = videos.filter((v) => v.type === "Teaser");
+  const pick = officialTrailers[0] ?? anyTrailers[0] ?? teasers[0];
+  return pick?.key ?? null;
 }

@@ -1,10 +1,11 @@
-// Bulk seed: populate movies_cache with ~50,000 titles — strong Turkish
+// Bulk seed: populate movies_cache with ~100,000 titles — strong Turkish
 // coverage (comedy/drama/romance/action prioritized first, so it survives
 // the final trim), broad global genre/decade/language coverage otherwise,
 // each with real TMDB keywords + production companies so franchise/studio
 // search (e.g. "marvel", "mcu") can match titles that don't contain that
-// word themselves. Re-run anytime to top up/refresh — every write is an
-// upsert keyed on tmdb_id.
+// word themselves. Re-run anytime to top up/refresh — already-cached
+// tmdb_ids are skipped (not re-fetched), everything else is an upsert
+// keyed on tmdb_id.
 import { createClient } from "@supabase/supabase-js";
 
 const TMDB_KEY = process.env.TMDB_API_KEY;
@@ -16,7 +17,7 @@ if (!TMDB_KEY || !SUPABASE_URL || !SERVICE_KEY) {
 }
 
 const TMDB_BASE = "https://api.themoviedb.org/3";
-const TARGET_TOTAL = 52000; // buffer above 50k — some detail fetches will fail/dedupe
+const TARGET_TOTAL = 105000; // buffer above 100k — some detail fetches will fail/dedupe
 const admin = createClient(SUPABASE_URL, SERVICE_KEY);
 
 function sleep(ms) {
@@ -94,9 +95,11 @@ async function collectIds() {
   console.log(`--- Turkish bucket done: ${trSet.size} unique TR ids ---`);
 
   // --- Global coverage (popular, top-rated, then genre-diverse passes) ---
-  await discoverBucket("Global · popularity", { sort_by: "popularity.desc" }, 250);
-  await discoverBucket("Global · top rated", { sort_by: "vote_average.desc", "vote_count.gte": 300 }, 200);
-  await discoverBucket("Global · vote_count", { sort_by: "vote_count.desc" }, 150);
+  await discoverBucket("Global · popularity", { sort_by: "popularity.desc" }, 500);
+  await discoverBucket("Global · top rated", { sort_by: "vote_average.desc", "vote_count.gte": 100 }, 500);
+  await discoverBucket("Global · vote_count", { sort_by: "vote_count.desc" }, 500);
+  await discoverBucket("Global · revenue", { sort_by: "revenue.desc" }, 300);
+  await discoverBucket("Global · vote_average low-bar", { sort_by: "vote_average.desc", "vote_count.gte": 20 }, 300);
 
   const diverseGenres = [
     ["Action", 28],
@@ -120,9 +123,11 @@ async function collectIds() {
   ];
   for (const [name, id] of diverseGenres) {
     if (idOrder.length >= TARGET_TOTAL) break;
-    await discoverBucket(`Global · ${name} · popularity`, { with_genres: id, sort_by: "popularity.desc" }, 80);
+    await discoverBucket(`Global · ${name} · popularity`, { with_genres: id, sort_by: "popularity.desc" }, 300);
     if (idOrder.length >= TARGET_TOTAL) break;
-    await discoverBucket(`Global · ${name} · vote_count`, { with_genres: id, sort_by: "vote_count.desc", "vote_count.gte": 10 }, 40);
+    await discoverBucket(`Global · ${name} · vote_count`, { with_genres: id, sort_by: "vote_count.desc" }, 300);
+    if (idOrder.length >= TARGET_TOTAL) break;
+    await discoverBucket(`Global · ${name} · revenue`, { with_genres: id, sort_by: "revenue.desc" }, 150);
   }
 
   // Decade passes surface long-tail catalog titles that pure popularity
@@ -146,24 +151,42 @@ async function collectIds() {
   for (const [from, to] of decades) {
     if (idOrder.length >= TARGET_TOTAL) break;
     await discoverBucket(
-      `Global · ${from}-${to}`,
+      `Global · ${from}-${to} · vote_count`,
       {
         "primary_release_date.gte": `${from}-01-01`,
         "primary_release_date.lte": `${to}-12-31`,
         sort_by: "vote_count.desc",
-        "vote_count.gte": 5,
       },
-      60,
+      250,
+    );
+    if (idOrder.length >= TARGET_TOTAL) break;
+    await discoverBucket(
+      `Global · ${from}-${to} · popularity`,
+      {
+        "primary_release_date.gte": `${from}-01-01`,
+        "primary_release_date.lte": `${to}-12-31`,
+        sort_by: "popularity.desc",
+      },
+      150,
     );
   }
 
   // Non-English, non-Turkish languages — broadens beyond a US+TR-only
-  // catalog (Spanish, French, German, Japanese, Korean, Hindi, Italian,
-  // Chinese, Russian, Portuguese).
-  const languages = ["es", "fr", "de", "ja", "ko", "hi", "it", "zh", "ru", "pt"];
+  // catalog. Wide list since this is now one of the biggest volume levers
+  // toward a 100k+ catalog (global "popularity" sort is heavily
+  // English-biased, so most of a given language's catalog only surfaces
+  // through a dedicated pass like this).
+  const languages = [
+    "es", "fr", "de", "ja", "ko", "hi", "it", "zh", "ru", "pt",
+    "sv", "no", "da", "fi", "nl", "pl", "cs", "el", "he", "ar",
+    "th", "id", "vi", "ta", "te", "ml", "bn", "fa", "uk", "ro",
+    "hu", "tl", "ms", "sr", "hr", "bg", "sk", "lt", "et", "lv",
+  ];
   for (const lang of languages) {
     if (idOrder.length >= TARGET_TOTAL) break;
-    await discoverBucket(`Global · lang=${lang}`, { with_original_language: lang, sort_by: "popularity.desc" }, 40);
+    await discoverBucket(`Global · lang=${lang} · popularity`, { with_original_language: lang, sort_by: "popularity.desc" }, 150);
+    if (idOrder.length >= TARGET_TOTAL) break;
+    await discoverBucket(`Global · lang=${lang} · vote_count`, { with_original_language: lang, sort_by: "vote_count.desc" }, 100);
   }
 
   console.log(`=== Collected ${idOrder.length} unique ids (${trSet.size} Turkish) ===`);
@@ -207,7 +230,7 @@ async function fetchAndUpsertAll(ids) {
   }
 
   const { ok, fail } = await pool(ids, 16, async (id) => {
-    const detail = await tmdb(`/movie/${id}`, { append_to_response: "credits,keywords" });
+    const detail = await tmdb(`/movie/${id}`, { append_to_response: "credits,keywords,videos" });
     const director = detail.credits?.crew?.find((c) => c.job === "Director")?.name ?? null;
     const castMembers = (detail.credits?.cast ?? []).slice(0, 10).map((c) => ({
       name: c.name,
@@ -219,6 +242,16 @@ async function fetchAndUpsertAll(ids) {
     const searchBlob = [detail.title, ...keywords.map((k) => k.name), ...companies.map((c) => c.name)]
       .join(" ")
       .toLowerCase();
+
+    const videos = (detail.videos?.results ?? []).filter((v) => v.site === "YouTube");
+    const byNewest = (a, b) => (b.published_at ?? "").localeCompare(a.published_at ?? "");
+    videos.sort(byNewest);
+    const trailer =
+      videos.find((v) => v.type === "Trailer" && v.official) ??
+      videos.find((v) => v.type === "Trailer") ??
+      videos.find((v) => v.type === "Teaser");
+    const trailerKey = trailer?.key ?? null;
+
     buffer.push({
       tmdb_id: detail.id,
       title: detail.title,
@@ -237,6 +270,7 @@ async function fetchAndUpsertAll(ids) {
       spoken_languages: detail.spoken_languages ?? [],
       keywords,
       production_companies: companies,
+      trailer_key: trailerKey,
       search_blob: searchBlob,
       cached_at: new Date().toISOString(),
     });
@@ -246,13 +280,38 @@ async function fetchAndUpsertAll(ids) {
   console.log(`=== Done. ok=${ok} fail=${fail} ===`);
 }
 
+async function loadAlreadyCachedIds() {
+  const ids = new Set();
+  const PAGE = 1000;
+  for (let from = 0; ; from += PAGE) {
+    const { data, error } = await admin
+      .from("movies_cache")
+      .select("tmdb_id")
+      .range(from, from + PAGE - 1);
+    if (error) {
+      console.error("  loadAlreadyCachedIds failed:", error.message);
+      break;
+    }
+    if (!data || data.length === 0) break;
+    for (const row of data) ids.add(row.tmdb_id);
+    if (data.length < PAGE) break;
+  }
+  return ids;
+}
+
 async function main() {
   const start = Date.now();
+  const alreadyCached = await loadAlreadyCachedIds();
+  console.log(`${alreadyCached.size} movies already cached — will skip re-fetching those`);
+
   await collectIds();
   const ids = idOrder.slice(0, TARGET_TOTAL);
   const trCountInFinal = ids.filter((id) => trSet.has(id)).length;
   console.log(`Final id list: ${ids.length} (Turkish: ${trCountInFinal})`);
-  await fetchAndUpsertAll(ids);
+
+  const newIds = ids.filter((id) => !alreadyCached.has(id));
+  console.log(`${newIds.length} are new (${ids.length - newIds.length} already cached, skipping)`);
+  await fetchAndUpsertAll(newIds);
 
   const { count } = await admin.from("movies_cache").select("*", { count: "exact", head: true });
   const { count: trCount } = await admin

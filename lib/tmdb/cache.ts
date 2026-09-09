@@ -3,6 +3,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { Database, Json } from "@/lib/types/database.types";
 import type { TmdbMovieDetail, TmdbMovieSummary } from "./types";
+import { pickTrailerKey } from "./client";
 
 type MoviesCacheRow = {
   tmdb_id: number;
@@ -86,6 +87,7 @@ export async function cacheMovie(detail: TmdbMovieDetail): Promise<void> {
       keywords: (detail.keywords?.keywords ?? []) as unknown as Json,
       production_companies: (detail.production_companies ?? []) as unknown as Json,
       search_blob: buildSearchBlob(detail),
+      trailer_key: pickTrailerKey(detail),
       cached_at: new Date().toISOString(),
     });
 
@@ -131,6 +133,61 @@ export async function getMoviePoolPage(
   }
   const { data } = await query.range(from, to);
   return (data ?? []).map(rowToSummary);
+}
+
+export interface ReelCandidate {
+  id: number;
+  title: string;
+  posterPath: string | null;
+  backdropPath: string | null;
+  trailerKey: string;
+  overview: string;
+  releaseYear: number | null;
+  externalRating: number | null;
+  genreIds: number[];
+  director: string | null;
+  castNames: string[];
+  originalLanguage: string | null;
+  popularity: number | null;
+}
+
+// Candidate pool for the Reels trailer feed (lib/recommendations/reels.ts)
+// — only movies with a known trailer, excluding whatever the caller has
+// already rated/swiped. Includes director/cast (movies_cache already has
+// them from the same detail fetch that resolved trailer_key) so reel
+// scoring gets the same signal quality as a full movie-detail match, not
+// just genre_ids like the lighter TmdbMovieSummary-based pools above.
+export async function getReelCandidatePool(
+  supabase: SupabaseClient<Database>,
+  excludeIds: Set<number>,
+  limit = 600,
+): Promise<ReelCandidate[]> {
+  const { data } = await supabase
+    .from("movies_cache")
+    .select(
+      "tmdb_id, title, poster_path, backdrop_path, trailer_key, overview, release_year, external_rating, genre_ids, director, cast_members, original_language, popularity",
+    )
+    .not("trailer_key", "is", null)
+    .order("popularity", { ascending: false })
+    .limit(limit);
+
+  return (data ?? [])
+    .filter((row) => row.trailer_key && !excludeIds.has(row.tmdb_id))
+    .map((row) => ({
+      id: row.tmdb_id,
+      title: row.title,
+      posterPath: row.poster_path,
+      backdropPath: row.backdrop_path,
+      trailerKey: row.trailer_key!,
+      overview: row.overview ?? "",
+      releaseYear: row.release_year,
+      externalRating: row.external_rating,
+      genreIds: row.genre_ids,
+      director: row.director,
+      castNames: ((row.cast_members as { name: string }[] | null) ?? []).map((c) => c.name),
+      originalLanguage: row.original_language,
+      popularity: row.popularity,
+    }));
 }
 
 // Title/keyword/studio search against the cache (see buildSearchBlob) —

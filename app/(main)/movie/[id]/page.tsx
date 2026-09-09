@@ -9,7 +9,9 @@ import { computeMoffyMatch } from "@/lib/recommendations/moffy-match";
 import { detailToMatchable } from "@/lib/recommendations/adapters";
 import { Card } from "@/components/ui/Card";
 import { MatchBadge } from "@/components/ui/MatchBadge";
+import { TrailerButton } from "@/components/movie/TrailerButton";
 import { RatingControl } from "./RatingControl";
+import { pickTrailerKey } from "@/lib/tmdb/client";
 
 function formatRuntime(minutes: number | null): string | null {
   if (!minutes) return null;
@@ -65,6 +67,7 @@ export default async function MovieDetailPage({
   const runtime = formatRuntime(detail.runtime);
   const studio = detail.production_companies?.[0]?.name;
   const keywords = (detail.keywords?.keywords ?? []).slice(0, 8);
+  const trailerKey = pickTrailerKey(detail);
 
   return (
     <div className="flex flex-col gap-6">
@@ -123,7 +126,10 @@ export default async function MovieDetailPage({
             )}
           </div>
 
-          <RatingControl movieId={id} initialRating={myRating} />
+          <div className="flex flex-wrap items-center gap-4">
+            {trailerKey && <TrailerButton videoKey={trailerKey} title={detail.title} />}
+            <RatingControl movieId={id} initialRating={myRating} />
+          </div>
 
           <p className="max-w-2xl text-brand-ink/80">{detail.overview}</p>
 
