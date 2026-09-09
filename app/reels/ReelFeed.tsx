@@ -5,14 +5,59 @@ import Image from "next/image";
 import Link from "next/link";
 import { tmdbImage } from "@/lib/tmdb/image";
 import type { ScoredReel } from "@/lib/recommendations/reels";
-import { swipeMovie, loadMoreReels } from "./actions";
+import { swipeMovie, loadMoreReels, saveMovie, unsaveMovie } from "./actions";
 
 const LOAD_MORE_THRESHOLD = 4; // fetch more once this many reels remain unseen below the active one
+const UNPLAYABLE_TIMEOUT_MS = 6000; // no "playing" state within this long => treat as broken, auto-skip
+const TRAILER_START_SECONDS = 2; // skips the near-universal black-frame/logo beat most trailers open on
+
+declare global {
+  interface Window {
+    YT?: {
+      Player: new (elementId: string, options: YTPlayerOptions) => YTPlayer;
+    };
+    onYouTubeIframeAPIReady?: () => void;
+  }
+}
+
+interface YTPlayerOptions {
+  videoId: string;
+  width?: string | number;
+  height?: string | number;
+  playerVars?: Record<string, string | number>;
+  events?: {
+    onReady?: () => void;
+    onError?: (e: { data: number }) => void;
+    onStateChange?: (e: { data: number }) => void;
+  };
+}
+
+interface YTPlayer {
+  destroy: () => void;
+  mute: () => void;
+  unMute: () => void;
+  seekTo: (seconds: number, allowSeekAhead: boolean) => void;
+  playVideo: () => void;
+}
+
+let youtubeApiPromise: Promise<void> | null = null;
+function loadYouTubeApi(): Promise<void> {
+  if (window.YT?.Player) return Promise.resolve();
+  if (youtubeApiPromise) return youtubeApiPromise;
+  youtubeApiPromise = new Promise((resolve) => {
+    window.onYouTubeIframeAPIReady = () => resolve();
+    const script = document.createElement("script");
+    script.src = "https://www.youtube.com/iframe_api";
+    document.head.appendChild(script);
+  });
+  return youtubeApiPromise;
+}
 
 export function ReelFeed({ initialQueue }: { initialQueue: ScoredReel[] }) {
   const [queue, setQueue] = useState(initialQueue);
   const [activeIndex, setActiveIndex] = useState(0);
   const [swiped, setSwiped] = useState<Map<number, boolean>>(new Map());
+  const [saved, setSaved] = useState<Set<number>>(new Set());
   const [muted, setMuted] = useState(true);
   const [, startTransition] = useTransition();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -61,16 +106,37 @@ export function ReelFeed({ initialQueue }: { initialQueue: ScoredReel[] }) {
     if (queue.length - activeIndex <= LOAD_MORE_THRESHOLD) fetchMore();
   }, [activeIndex, queue.length, fetchMore]);
 
+  // Swiping records the preference — it does NOT advance the feed.
+  // Real reels/shorts apps let a like keep playing; the user decides when
+  // to move on by scrolling themselves.
   function handleSwipe(movieId: number, liked: boolean) {
     if (swiped.has(movieId)) return;
     setSwiped((prev) => new Map(prev).set(movieId, liked));
     startTransition(() => {
       swipeMovie(movieId, liked).catch((err) => console.error("swipe failed", err));
     });
-    setTimeout(() => {
-      const next = slideRefs.current[activeIndex + 1];
-      next?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 350);
+  }
+
+  function handleSave(movieId: number) {
+    const isSaved = saved.has(movieId);
+    setSaved((prev) => {
+      const next = new Set(prev);
+      if (isSaved) next.delete(movieId);
+      else next.add(movieId);
+      return next;
+    });
+    startTransition(() => {
+      (isSaved ? unsaveMovie(movieId) : saveMovie(movieId)).catch((err) => console.error("save failed", err));
+    });
+  }
+
+  // A broken trailer (region-locked, pulled by uploader, etc.) shouldn't
+  // strand the user on a dead slide — skip forward automatically, but
+  // only for genuinely unplayable content, not on any user action.
+  function handleUnplayable(index: number) {
+    if (index !== activeIndex) return;
+    const next = slideRefs.current[index + 1];
+    next?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
   if (queue.length === 0) {
@@ -117,7 +183,10 @@ export function ReelFeed({ initialQueue }: { initialQueue: ScoredReel[] }) {
           active={i === activeIndex}
           muted={muted}
           liked={swiped.get(reel.id)}
+          isSaved={saved.has(reel.id)}
           onSwipe={(liked) => handleSwipe(reel.id, liked)}
+          onSave={() => handleSave(reel.id)}
+          onUnplayable={() => handleUnplayable(i)}
         />
       ))}
     </div>
@@ -129,17 +198,86 @@ function ReelSlide({
   active,
   muted,
   liked,
+  isSaved,
   onSwipe,
+  onSave,
+  onUnplayable,
   ref,
 }: {
   reel: ScoredReel;
   active: boolean;
   muted: boolean;
   liked: boolean | undefined;
+  isSaved: boolean;
   onSwipe: (liked: boolean) => void;
+  onSave: () => void;
+  onUnplayable: () => void;
   ref: (el: HTMLDivElement | null) => void;
 }) {
   const backdrop = tmdbImage(reel.backdropPath ?? reel.posterPath, "w780");
+  const playerElId = `yt-player-${reel.id}`;
+  const playerRef = useRef<YTPlayer | null>(null);
+  const unplayableTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+
+  useEffect(() => {
+    if (!active) return;
+    let cancelled = false;
+
+    loadYouTubeApi().then(() => {
+      if (cancelled || !window.YT) return;
+      unplayableTimerRef.current = setTimeout(onUnplayable, UNPLAYABLE_TIMEOUT_MS);
+      playerRef.current = new window.YT.Player(playerElId, {
+        videoId: reel.trailerKey,
+        width: "100%",
+        height: "100%",
+        playerVars: {
+          autoplay: 1,
+          mute: muted ? 1 : 0,
+          start: TRAILER_START_SECONDS,
+          controls: 0,
+          disablekb: 1,
+          modestbranding: 1,
+          playsinline: 1,
+          loop: 1,
+          playlist: reel.trailerKey,
+          rel: 0,
+          iv_load_policy: 3,
+        },
+        events: {
+          onError: () => {
+            clearTimeout(unplayableTimerRef.current);
+            onUnplayable();
+          },
+          onStateChange: (e) => {
+            if (e.data === 1) clearTimeout(unplayableTimerRef.current); // 1 = playing
+            // 0 = ended. loop+playlist should already restart it, but that
+            // URL-param trick is flaky in practice — manually seek back
+            // and replay so YouTube's own "ended" screen (suggested
+            // videos, related channels — not fully suppressible via the
+            // embed API) never has a frame to actually render.
+            if (e.data === 0) {
+              playerRef.current?.seekTo(TRAILER_START_SECONDS, true);
+              playerRef.current?.playVideo();
+            }
+          },
+        },
+      });
+    });
+
+    return () => {
+      cancelled = true;
+      clearTimeout(unplayableTimerRef.current);
+      playerRef.current?.destroy();
+      playerRef.current = null;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [active, reel.id]);
+
+  useEffect(() => {
+    if (!playerRef.current) return;
+    if (muted) playerRef.current.mute();
+    else playerRef.current.unMute();
+  }, [muted]);
 
   return (
     <div ref={ref} className="relative flex h-dvh w-full snap-start items-center justify-center">
@@ -148,16 +286,23 @@ function ReelSlide({
       )}
 
       {active && (
-        <iframe
-          key={`${reel.id}-${muted}`}
-          src={`https://www.youtube.com/embed/${reel.trailerKey}?autoplay=1&mute=${muted ? 1 : 0}&loop=1&playlist=${reel.trailerKey}&controls=0&modestbranding=1&playsinline=1`}
-          title={`${reel.title} trailer`}
-          allow="accelerometer; autoplay; encrypted-media; gyroscope"
-          className="aspect-video w-full max-h-full"
-        />
+        <div className="relative aspect-video w-full max-h-full overflow-hidden">
+          {/* YouTube's title/channel bar and bottom control strip (share,
+              watch-later, "more videos", the YouTube logo) can no longer be
+              suppressed via player params — YouTube dropped modestbranding's
+              effect in 2023. Scaling the player past its crop box pushes
+              those edge-anchored bars outside the visible frame instead. */}
+          <div id={playerElId} className="absolute inset-0 scale-125" />
+          {/* Swallows every click/tap on the video itself so the user can
+              never reach YouTube's own UI (pause overlay, end-screen
+              suggestions, channel branding) — playback is only ever
+              driven by our own buttons below, never direct interaction
+              with the embed. */}
+          <div className="absolute inset-0 z-10" />
+        </div>
       )}
 
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-linear-to-t from-black/90 via-black/40 to-transparent p-6 pb-28 sm:pb-6">
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 bg-linear-to-t from-black/90 via-black/40 to-transparent p-6 pb-28 sm:pb-6">
         <div className="pointer-events-auto max-w-xl">
           <div className="mb-1 flex flex-wrap items-center gap-2">
             <span className="font-display text-2xl text-white">{reel.title}</span>
@@ -171,12 +316,12 @@ function ReelSlide({
           </p>
           <p className="line-clamp-2 text-sm text-white/80">{reel.overview}</p>
           <Link href={`/movie/${reel.id}`} className="mt-2 inline-block text-sm font-semibold text-brand-orange hover:underline">
-            More info →
+            More info & comments →
           </Link>
         </div>
       </div>
 
-      <div className="absolute bottom-32 right-4 flex flex-col items-center gap-5 sm:bottom-6">
+      <div className="absolute bottom-32 right-4 z-20 flex flex-col items-center gap-4 sm:bottom-6">
         <button
           type="button"
           onClick={() => onSwipe(true)}
@@ -200,6 +345,18 @@ function ReelSlide({
           }`}
         >
           ✕
+        </button>
+        <button
+          type="button"
+          onClick={onSave}
+          aria-label={isSaved ? "Remove from saved" : "Save"}
+          className={`flex h-12 w-12 cursor-pointer items-center justify-center rounded-full text-xl backdrop-blur-sm transition-all duration-200 active:scale-90 ${
+            isSaved
+              ? "bg-brand-yellow text-brand-bg shadow-[0_0_20px_4px_rgba(245,183,34,0.4)]"
+              : "bg-black/50 text-white hover:bg-black/70"
+          }`}
+        >
+          🔖
         </button>
       </div>
     </div>

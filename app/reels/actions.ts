@@ -19,6 +19,36 @@ export async function swipeMovie(movieId: number, liked: boolean): Promise<void>
   if (error) throw new Error(error.message);
 }
 
+export async function saveMovie(movieId: number): Promise<void> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
+
+  const { error } = await supabase
+    .from("saved_movies")
+    .upsert({ user_id: user.id, movie_id: movieId }, { onConflict: "user_id,movie_id" });
+
+  if (error) throw new Error(error.message);
+}
+
+export async function unsaveMovie(movieId: number): Promise<void> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
+
+  const { error } = await supabase
+    .from("saved_movies")
+    .delete()
+    .eq("user_id", user.id)
+    .eq("movie_id", movieId);
+
+  if (error) throw new Error(error.message);
+}
+
 // Called from the client once the on-screen queue runs low. seenIds
 // covers everything already shown/swiped in this session (not yet
 // reflected in ratedMovieIds/swipedMovieIds from a fresh taste-profile
